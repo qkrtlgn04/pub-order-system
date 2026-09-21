@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>주점 주문</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15120d;
+    --surface:#211b13;
+    --surface-2:#2b2318;
+    --border:#3c3220;
+    --text:#f5efe3;
+    --text-muted:#b3a890;
+    --accent:#f2a93b;
+    --accent-strong:#ffc665;
+    --cta:#d64545;
+    --cta-strong:#ea5b5b;
+    --success:#4caf6d;
+    --pending:#e0a83e;
+    --danger:#d64545;
+    --radius:16px;
+    --radius-sm:10px;
+    color-scheme: dark;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-variant-numeric: tabular-nums;
+    -webkit-tap-highlight-color: transparent;
+  }
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+  button{font-family:inherit;}
+
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    padding: calc(20px + env(safe-area-inset-top,0px)) 20px 16px;
+    background: linear-gradient(180deg, var(--bg) 70%, rgba(21,18,13,0));
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .store-name{
+    font-family:'Black Han Sans', sans-serif;
+    font-size: 28px;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+  .store-sub{ font-size:13px; color:var(--text-muted); }
+  .history-btn{
+    position:absolute; right:20px; top: calc(20px + env(safe-area-inset-top,0px));
+    background:var(--surface); border:1px solid var(--border); color:var(--text);
+    border-radius: 999px; padding:7px 14px; font-size:12.5px; font-weight:700;
+  }
+
+  main{ padding: 4px 20px 140px; max-width:640px; margin:0 auto; }
+
+  .category-block{ margin-top:22px; }
+  .category-title{
+    font-size:13px; font-weight:700; color:var(--accent);
+    letter-spacing: 1px; text-transform:uppercase; margin: 0 0 10px 2px;
+  }
+  .item-card{
+    display:flex; align-items:center; gap:12px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius: var(--radius); padding:14px; margin-bottom:10px;
+  }
+  .item-card.soldout{ opacity:0.5; }
+  .item-info{ flex:1; min-width:0; }
+  .item-name{ font-weight:700; font-size:15.5px; }
+  .item-desc{ font-size:12.5px; color:var(--text-muted); margin-top:2px; }
+  .item-price{ font-weight:700; color:var(--accent-strong); margin-top:6px; font-size:14px; }
+  .soldout-badge{
+    display:inline-block; background:var(--surface-2); color:var(--text-muted);
+    font-size:11.5px; font-weight:700; padding:3px 8px; border-radius:6px; margin-top:6px;
+  }
+  .stepper{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .stepper button{
+    width:32px; height:32px; border-radius:999px; border:1px solid var(--border);
+    background:var(--surface-2); color:var(--text); font-size:18px; line-height:1;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .stepper button:active{ transform:scale(0.94); }
+  .stepper .qty{ width:20px; text-align:center; font-weight:700; font-size:15px; }
+
+  .empty-state{ color:var(--text-muted); text-align:center; padding: 60px 20px; font-size:14px; }
+
+  .cartbar{
+    position:fixed; left:0; right:0; bottom:0; z-index:30;
+    padding: 14px 20px calc(14px + env(safe-area-inset-bottom,0px));
+    background: linear-gradient(0deg, var(--bg) 60%, rgba(21,18,13,0));
+  }
+  .cartbar-inner{
+    max-width:640px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 12px 12px 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  .cartbar-info{ font-size:14px; }
+  .cartbar-info b{ color:var(--accent-strong); font-size:16px; }
+  .btn-cta{
+    background: var(--cta); color:#fff; border:none; border-radius: 12px;
+    padding: 13px 22px; font-size:15px; font-weight:700; cursor:pointer;
+  }
+  .btn-cta:active{ background: var(--cta-strong); }
+  .btn-cta:disabled{ opacity:0.4; }
+
+  .sheet-backdrop{
+    position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.55);
+    display:flex; align-items:flex-end; justify-content:center;
+  }
+  .sheet{
+    width:100%; max-width:640px; max-height:88vh; overflow-y:auto;
+    background:var(--bg); border-radius: 20px 20px 0 0;
+    padding: 22px 20px calc(24px + env(safe-area-inset-bottom,0px));
+    border-top:1px solid var(--border);
+  }
+  .sheet-handle{ width:36px; height:4px; border-radius:2px; background:var(--border); margin: 0 auto 16px; }
+  .sheet h2{ font-size:19px; margin:0 0 14px; font-family:'Black Han Sans',sans-serif; letter-spacing:0.3px; }
+  .sheet-close{
+    position:absolute; right:18px; top:18px; background:none; border:none; color:var(--text-muted);
+    font-size:22px; cursor:pointer; line-height:1;
+  }
+
+  .order-line{ display:flex; justify-content:space-between; padding:7px 0; font-size:14px; border-bottom:1px dashed var(--border); }
+  .order-line:last-child{ border-bottom:none; }
+  .order-line .name{ color:var(--text); }
+  .order-line .sub{ color:var(--text-muted); }
+  .order-total-row{ display:flex; justify-content:space-between; padding:14px 0 6px; font-size:16px; font-weight:800; }
+  .order-total-row b{ color:var(--accent-strong); font-size:19px; }
+
+  label.field-label{ display:block; font-size:13px; font-weight:700; color:var(--text-muted); margin: 18px 0 6px; }
+  input.field-input{
+    width:100%; background:var(--surface); border:1px solid var(--border); color:var(--text);
+    border-radius: var(--radius-sm); padding: 12px 14px; font-size:15px; font-family:inherit;
+  }
+  input.field-input:focus{ outline:none; border-color:var(--accent); }
+
+  .pay-card{
+    margin-top:14px; background:var(--surface); border:1px solid var(--border);
+    border-radius: var(--radius); padding: 16px;
+  }
+  .pay-row{ display:flex; justify-content:space-between; align-items:center; padding: 7px 0; font-size:14px; }
+  .pay-row .k{ color:var(--text-muted); }
+  .pay-row .v{ font-weight:700; }
+  .copy-btn{
+    background:var(--surface-2); border:1px solid var(--border); color:var(--accent-strong);
+    border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700; cursor:pointer; margin-left:8px;
+  }
+  .pay-amount{ font-size:22px; font-weight:800; color:var(--accent-strong); }
+
+  .confirm-check{
+    margin-top:16px; display:flex; align-items:flex-start; gap:10px;
+    background:var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-sm);
+    padding:13px; font-size:13px; color:var(--text); cursor:pointer;
+  }
+  .confirm-check input{ margin-top:2px; width:18px; height:18px; flex-shrink:0; accent-color:var(--accent); }
+
+  .proof-upload{
+    margin-top:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    background:var(--surface-2); border:1.5px dashed var(--border); border-radius: var(--radius);
+    padding:18px; cursor:pointer; text-align:center; min-height:72px;
+  }
+  .proof-upload.has-image{ border-style:solid; border-color:var(--accent); padding:10px; }
+  .proof-placeholder{ font-size:13px; color:var(--text-muted); }
+  .proof-preview{ max-width:100%; max-height:220px; border-radius:10px; }
+  .proof-status{ font-size:12px; margin-top:6px; min-height:16px; }
+  .proof-status.ok{ color:var(--success); }
+  .proof-status.busy{ color:var(--text-muted); }
+  .proof-status.err{ color:var(--danger); }
+
+  .btn-submit{
+    width:100%; margin-top:18px; background:var(--cta); color:#fff; border:none;
+    border-radius: var(--radius-sm); padding:15px; font-size:16px; font-weight:800; cursor:pointer;
+  }
+  .btn-submit:disabled{ opacity:0.35; }
+  .btn-secondary{
+    width:100%; margin-top:10px; background:transparent; color:var(--text-muted); border:1px solid var(--border);
+    border-radius: var(--radius-sm); padding:13px; font-size:14px; font-weight:700; cursor:pointer;
+  }
+
+  .status-badge{
+    display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px;
+    font-size:13px; font-weight:800;
+  }
+  .status-badge::before{ content:""; width:7px; height:7px; border-radius:50%; background:currentColor; }
+  .st-awaiting_payment{ background: rgba(224,168,62,0.15); color:var(--pending); }
+  .st-paid{ background: rgba(79,150,220,0.15); color:#5fb3ee; }
+  .st-completed{ background: rgba(76,175,109,0.15); color:var(--success); }
+  .st-cancelled{ background: rgba(214,69,69,0.15); color:var(--danger); }
+
+  .order-number-big{ font-family:'Black Han Sans',sans-serif; font-size:40px; color:var(--accent); line-height:1; margin:6px 0 10px; }
+  .status-desc{ font-size:13.5px; color:var(--text-muted); margin-top:8px; line-height:1.5; }
+
+  .history-item{
+    background:var(--surface); border:1px solid var(--border); border-radius: var(--radius-sm);
+    padding:12px 14px; margin-bottom:8px; cursor:pointer;
+  }
+  .history-item-head{ display:flex; justify-content:space-between; align-items:center; font-size:13.5px; }
+  .history-item-sub{ font-size:12px; color:var(--text-muted); margin-top:4px; }
+
+  .toast{
+    position:fixed; left:50%; bottom:30px; transform:translateX(-50%);
+    background:#2b2318; color:var(--text); border:1px solid var(--border);
+    padding:11px 18px; border-radius:999px; font-size:13.5px; z-index:80;
+    opacity:0; transition: opacity 0.25s; pointer-events:none;
+  }
+  .toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="store-name" id="storeName">주점</div>
+  <div class="store-sub" id="storeSub">메뉴를 고르고, 주문과 동시에 계좌이체로 결제하세요</div>
+  <button class="history-btn" id="historyBtn">내 주문내역</button>
+</header>
+
+<main>
+  <div id="menuList">
+    <div class="empty-state">메뉴를 불러오는 중…</div>
+  </div>
+</main>
+
+<div class="cartbar" id="cartBar" hidden>
+  <div class="cartbar-inner">
+    <div class="cartbar-info"><b id="cartCount">0</b>개 · <b id="cartTotal">0원</b></div>
+    <button class="btn-cta" id="openOrderBtn">주문하기</button>
+  </div>
+</div>
+
+<!-- 주문서 / 계좌이체 시트 -->
+<div class="sheet-backdrop" id="orderSheetBackdrop" hidden>
+  <div class="sheet" style="position:relative;">
+    <button class="sheet-close" id="orderSheetClose">✕</button>
+    <div class="sheet-handle"></div>
+    <h2>주문 확인</h2>
+    <div id="orderLines"></div>
+    <div class="order-total-row"><span>합계</span><b id="orderTotal">0원</b></div>
+
+    <label class="field-label" for="depositorInput">입금자명 (실제 계좌이체 하실 성함)</label>
+    <input class="field-input" id="depositorInput" placeholder="예: 박시후" autocomplete="off">
+
+    <label class="field-label" for="noteInput">테이블 번호 / 닉네임 (선택)</label>
+    <input class="field-input" id="noteInput" placeholder="예: 3번 테이블 또는 홍길동" autocomplete="off">
+
+    <div class="pay-card">
+      <div class="pay-row"><span class="k">은행</span><span class="v" id="payBank">-</span></div>
+      <div class="pay-row"><span class="k">계좌번호</span><span class="v" id="payAccount">-</span><button class="copy-btn" id="copyAccountBtn">복사</button></div>
+      <div class="pay-row"><span class="k">예금주</span><span class="v" id="payHolder">-</span></div>
+      <div class="pay-row"><span class="k">입금액</span><span class="pay-amount" id="payAmount">0원</span></div>
+    </div>
+
+    <label class="field-label" for="depositProofInput">입금 확인 캡처 첨부 (필수)</label>
+    <label class="proof-upload" id="proofUploadBox" for="depositProofInput">
+      <input type="file" id="depositProofInput" accept="image/*" capture="environment" hidden>
+      <img class="proof-preview" id="proofPreview" hidden>
+      <span class="proof-placeholder" id="proofPlaceholder">탭해서 입금 완료 화면 캡처 올리기</span>
+    </label>
+    <div class="proof-status" id="proofStatus"></div>
+
+    <button class="btn-submit" id="submitOrderBtn" disabled>주문 확정하기</button>
+  </div>
+</div>
+
+<!-- 주문 상태 시트 -->
+<div class="sheet-backdrop" id="statusSheetBackdrop" hidden>
+  <div class="sheet" style="position:relative;">
+    <button class="sheet-close" id="statusSheetClose">✕</button>
+    <div class="sheet-handle"></div>
+    <div style="text-align:center;">
+      <div style="font-size:13px;color:var(--text-muted);">주문번호</div>
+      <div class="order-number-big" id="statusOrderNumber">#0</div>
+      <span class="status-badge" id="statusBadge">확인중</span>
+      <div class="status-desc" id="statusDesc"></div>
+    </div>
+    <div id="statusLines" style="margin-top:18px;"></div>
+    <div class="order-total-row"><span>합계</span><b id="statusTotal">0원</b></div>
+    <button class="btn-secondary" id="statusOrderMoreBtn">메뉴 더 보기 / 추가 주문</button>
+  </div>
+</div>
+
+<!-- 내 주문내역 시트 -->
+<div class="sheet-backdrop" id="historySheetBackdrop" hidden>
+  <div class="sheet" style="position:relative;">
+    <button class="sheet-close" id="historySheetClose">✕</button>
+    <div class="sheet-handle"></div>
+    <h2>내 주문내역</h2>
+    <div id="historyList"><div class="empty-state">아직 주문 내역이 없어요</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  function won(n){ return (Number(n)||0).toLocaleString('ko-KR') + '원'; }
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h);
+    t._h = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+  }
+
+  var app, db, auth, uid = null;
+  try{
+    app = firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    auth = firebase.auth();
+  }catch(e){
+    document.getElementById('menuList').innerHTML =
+      '<div class="empty-state">앱 연결에 실패했어요.<br>firebase-config.js 설정을 확인해주세요.</div>';
+    console.error(e);
+  }
+
+  var menuItems = {};        // id -> {name, price, category, soldOut, order}
+  var settings = { storeName:'주점', bankName:'', accountNumber:'', accountHolder:'' };
+  var cart = {};              // id -> qty
+  var CART_KEY = 'pub_cart_v1';
+  var HISTORY_KEY = 'pub_my_orders_v1';
+  var currentOrderId = null;
+  var currentOrderUnsub = null;
+
+  try{
+    var savedCart = JSON.parse(localStorage.getItem(CART_KEY) || '{}');
+    if (savedCart && typeof savedCart === 'object') cart = savedCart;
+  }catch(e){}
+
+  function saveCart(){
+    try{ localStorage.setItem(CART_KEY, JSON.stringify(cart)); }catch(e){}
+  }
+  function getHistory(){
+    try{ return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }catch(e){ return []; }
+  }
+  function pushHistory(entry){
+    var h = getHistory();
+    h.unshift(entry);
+    if (h.length > 15) h = h.slice(0,15);
+    try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); }catch(e){}
+  }
+
+  // ---------- 인증 ----------
+  if (auth){
+    auth.onAuthStateChanged(function(user){
+      if (user){
+        uid = user.uid;
+        startListeners();
+      }
+    });
+    auth.signInAnonymously().catch(function(err){
+      console.error(err);
+      document.getElementById('menuList').innerHTML =
+        '<div class="empty-state">연결에 실패했어요 (' + err.code + ').<br>Firebase 인증(익명 로그인) 설정을 확인해주세요.</div>';
+    });
+  }
+
+  function startListeners(){
+    db.collection('settings').doc('main').onSnapshot(function(snap){
+      if (snap.exists){
+        settings = Object.assign(settings, snap.data());
+        document.getElementById('storeName').textContent = settings.storeName || '주점';
+        document.title = (settings.storeName || '주점') + ' 주문';
+      }
+    }, function(err){ console.error(err); });
+
+    db.collection('menu').onSnapshot(function(snap){
+      menuItems = {};
+      snap.forEach(function(doc){ menuItems[doc.id] = Object.assign({id:doc.id}, doc.data()); });
+      renderMenu();
+      updateCartBar();
+    }, function(err){
+      console.error(err);
+      document.getElementById('menuList').innerHTML =
+        '<div class="empty-state">메뉴를 불러오지 못했어요.<br>Firestore 보안 규칙을 확인해주세요.</div>';
+    });
+
+    renderHistory(); // subscribes to saved order ids
+  }
+
+  // ---------- 메뉴 렌더링 ----------
+  function renderMenu(){
+    var wrap = document.getElementById('menuList');
+    var ids = Object.keys(menuItems);
+    if (ids.length === 0){
+      wrap.innerHTML = '<div class="empty-state">아직 등록된 메뉴가 없어요.<br>주방 화면에서 메뉴를 등록해주세요.</div>';
+      return;
+    }
+    // 정리: cart 에 없는 품절/삭제 항목 제거
+    Object.keys(cart).forEach(function(id){ if (!menuItems[id]) delete cart[id]; });
+
+    var categories = [];
+    var byCat = {};
+    ids.sort(function(a,b){
+      var oa = menuItems[a].order, ob = menuItems[b].order;
+      if (oa != null && ob != null) return oa - ob;
+      return (menuItems[a].name||'').localeCompare(menuItems[b].name||'', 'ko');
+    }).forEach(function(id){
+      var it = menuItems[id];
+      var cat = it.category || '기타';
+      if (!byCat[cat]){ byCat[cat] = []; categories.push(cat); }
+      byCat[cat].push(id);
+    });
+
+    var html = '';
+    categories.forEach(function(cat){
+      html += '<div class="category-block"><div class="category-title">' + escapeHtml(cat) + '</div>';
+      byCat[cat].forEach(function(id){
+        var it = menuItems[id];
+        var qty = cart[id] || 0;
+        html += '<div class="item-card ' + (it.soldOut ? 'soldout' : '') + '" data-id="' + id + '">';
+        html += '<div class="item-info"><div class="item-name">' + escapeHtml(it.name||'') + '</div>';
+        if (it.desc) html += '<div class="item-desc">' + escapeHtml(it.desc) + '</div>';
+        html += '<div class="item-price">' + won(it.price) + '</div>';
+        if (it.soldOut) html += '<div class="soldout-badge">품절</div>';
+        html += '</div>';
+        if (!it.soldOut){
+          html += '<div class="stepper">' +
+            '<button class="qty-minus" data-id="' + id + '">−</button>' +
+            '<span class="qty">' + qty + '</span>' +
+            '<button class="qty-plus" data-id="' + id + '">+</button></div>';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+    wrap.innerHTML = html;
+
+    wrap.querySelectorAll('.qty-plus').forEach(function(btn){
+      btn.addEventListener('click', function(){ changeQty(btn.dataset.id, 1); });
+    });
+    wrap.querySelectorAll('.qty-minus').forEach(function(btn){
+      btn.addEventListener('click', function(){ changeQty(btn.dataset.id, -1); });
+    });
+  }
+
+  function changeQty(id, delta){
+    var cur = cart[id] || 0;
+    var next = Math.max(0, Math.min(20, cur + delta));
+    if (next === 0) delete cart[id]; else cart[id] = next;
+    saveCart();
+    var card = document.querySelector('.item-card[data-id="' + id + '"] .qty');
+    if (card) card.textContent = next;
+    updateCartBar();
+  }
+
+  function cartSummary(){
+    var count = 0, total = 0, lines = [];
+    Object.keys(cart).forEach(function(id){
+      var it = menuItems[id];
+      if (!it) return;
+      var qty = cart[id];
+      count += qty;
+      var sub = it.price * qty;
+      total += sub;
+      lines.push({ id:id, name: it.name, price: it.price, qty: qty, subtotal: sub });
+    });
+    return { count: count, total: total, lines: lines };
+  }
+
+  function updateCartBar(){
+    var s = cartSummary();
+    var bar = document.getElementById('cartBar');
+    if (s.count === 0){ bar.hidden = true; return; }
+    bar.hidden = false;
+    document.getElementById('cartCount').textContent = s.count;
+    document.getElementById('cartTotal').textContent = won(s.total);
+  }
+
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  // ---------- 주문 시트 ----------
+  var orderSheetBackdrop = document.getElementById('orderSheetBackdrop');
+  document.getElementById('openOrderBtn').addEventListener('click', openOrderSheet);
+  document.getElementById('orderSheetClose').addEventListener('click', function(){ orderSheetBackdrop.hidden = true; });
+  orderSheetBackdrop.addEventListener('click', function(e){ if (e.target === orderSheetBackdrop) orderSheetBackdrop.hidden = true; });
+
+  function openOrderSheet(){
+    var s = cartSummary();
+    if (s.count === 0) return;
+    var lw = document.getElementById('orderLines');
+    lw.innerHTML = s.lines.map(function(l){
+      return '<div class="order-line"><span class="name">' + escapeHtml(l.name) + ' <span class="sub">x' + l.qty + '</span></span><span>' + won(l.subtotal) + '</span></div>';
+    }).join('');
+    document.getElementById('orderTotal').textContent = won(s.total);
+    document.getElementById('payBank').textContent = settings.bankName || '(주방 화면에서 계좌 정보를 등록해주세요)';
+    document.getElementById('payAccount').textContent = settings.accountNumber || '-';
+    document.getElementById('payHolder').textContent = settings.accountHolder || '-';
+    document.getElementById('payAmount').textContent = won(s.total);
+    document.getElementById('depositorInput').value = '';
+    document.getElementById('noteInput').value = '';
+    resetProofUpload();
+    document.getElementById('submitOrderBtn').disabled = true;
+    orderSheetBackdrop.hidden = false;
+  }
+
+  // ---------- 입금 확인 캡처 업로드 ----------
+  var depositProofDataUrl = null;
+  var proofInput = document.getElementById('depositProofInput');
+  var proofPreview = document.getElementById('proofPreview');
+  var proofPlaceholder = document.getElementById('proofPlaceholder');
+  var proofBox = document.getElementById('proofUploadBox');
+  var proofStatus = document.getElementById('proofStatus');
+
+  function resetProofUpload(){
+    depositProofDataUrl = null;
+    proofInput.value = '';
+    proofPreview.hidden = true;
+    proofPreview.src = '';
+    proofPlaceholder.hidden = false;
+    proofBox.classList.remove('has-image');
+    proofStatus.textContent = '';
+    proofStatus.className = 'proof-status';
+  }
+
+  function compressImageFile(file, maxDim, quality){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var img = new Image();
+        img.onload = function(){
+          var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          var cw = Math.max(1, Math.round(img.width * scale));
+          var ch = Math.max(1, Math.round(img.height * scale));
+          var canvas = document.createElement('canvas');
+          canvas.width = cw; canvas.height = ch;
+          canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = function(){ reject(new Error('이미지를 불러오지 못했어요')); };
+        img.src = e.target.result;
+      };
+      reader.onerror = function(){ reject(new Error('파일을 읽지 못했어요')); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function compressUntilSmall(file){
+    var attempts = [
+      { maxDim: 1000, quality: 0.6 },
+      { maxDim: 800, quality: 0.5 },
+      { maxDim: 640, quality: 0.45 },
+      { maxDim: 480, quality: 0.4 }
+    ];
+    var LIMIT = 180000; // dataURL 문자열 길이 기준 (Firestore 문서 256KiB 한도 내로 여유있게)
+    var i = 0;
+    function tryNext(){
+      if (i >= attempts.length) return Promise.reject(new Error('이미지 용량이 너무 커요. 더 작거나 간단한 캡처로 다시 시도해주세요.'));
+      var a = attempts[i++];
+      return compressImageFile(file, a.maxDim, a.quality).then(function(dataUrl){
+        if (dataUrl.length <= LIMIT) return dataUrl;
+        return tryNext();
+      });
+    }
+    return tryNext();
+  }
+
+  proofBox.addEventListener('click', function(e){
+    // 라벨-인풋 연결이 있지만, 미리보기 이미지를 다시 눌러도 새로 고를 수 있도록 보장
+  });
+
+  proofInput.addEventListener('change', function(){
+    var file = proofInput.files && proofInput.files[0];
+    if (!file) return;
+    depositProofDataUrl = null;
+    refreshSubmitEnabled();
+    proofStatus.textContent = '이미지 처리 중…';
+    proofStatus.className = 'proof-status busy';
+    compressUntilSmall(file).then(function(dataUrl){
+      depositProofDataUrl = dataUrl;
+      proofPreview.src = dataUrl;
+      proofPreview.hidden = false;
+      proofPlaceholder.hidden = true;
+      proofBox.classList.add('has-image');
+      proofStatus.textContent = '첨부 완료 ✓';
+      proofStatus.className = 'proof-status ok';
+      refreshSubmitEnabled();
+    }).catch(function(err){
+      console.error(err);
+      depositProofDataUrl = null;
+      proofStatus.textContent = err.message || '이미지 처리에 실패했어요';
+      proofStatus.className = 'proof-status err';
+      refreshSubmitEnabled();
+    });
+  });
+
+  function refreshSubmitEnabled(){
+    var depositor = document.getElementById('depositorInput').value.trim();
+    document.getElementById('submitOrderBtn').disabled = !(depositor && depositProofDataUrl);
+  }
+  document.getElementById('depositorInput').addEventListener('input', refreshSubmitEnabled);
+
+  document.getElementById('copyAccountBtn').addEventListener('click', function(){
+    var acc = settings.accountNumber || '';
+    if (!acc) return;
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(acc).then(function(){ toast('계좌번호를 복사했어요'); }).catch(function(){ toast('복사에 실패했어요'); });
+    }else{
+      toast('이 브라우저는 자동 복사를 지원하지 않아요');
+    }
+  });
+
+  document.getElementById('submitOrderBtn').addEventListener('click', submitOrder);
+
+  function submitOrder(){
+    if (!uid){ toast('연결 중이에요. 잠시 후 다시 시도해주세요'); return; }
+    var s = cartSummary();
+    if (s.count === 0) return;
+    var depositor = document.getElementById('depositorInput').value.trim();
+    var note = document.getElementById('noteInput').value.trim();
+    if (!depositor){ toast('입금자명을 입력해주세요'); return; }
+    if (!depositProofDataUrl){ toast('입금 확인 캡처를 첨부해주세요'); return; }
+
+    var btn = document.getElementById('submitOrderBtn');
+    btn.disabled = true;
+    btn.textContent = '주문 접수 중…';
+
+    var counterRef = db.collection('settings').doc('counter');
+    db.runTransaction(function(t){
+      return t.get(counterRef).then(function(snap){
+        var next = (snap.exists && snap.data().nextOrderNumber) ? snap.data().nextOrderNumber : 1;
+        t.set(counterRef, { nextOrderNumber: next + 1 }, { merge: true });
+        return next;
+      });
+    }).then(function(orderNumber){
+      var orderData = {
+        orderNumber: orderNumber,
+        items: s.lines.map(function(l){ return { name: l.name, price: l.price, qty: l.qty, subtotal: l.subtotal }; }),
+        totalAmount: s.total,
+        depositorName: depositor,
+        note: note,
+        depositProofImage: depositProofDataUrl,
+        status: 'awaiting_payment',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: uid
+      };
+      return db.collection('orders').add(orderData).then(function(ref){
+        return { id: ref.id, orderNumber: orderNumber, total: s.total, lines: s.lines };
+      });
+    }).then(function(result){
+      cart = {};
+      saveCart();
+      renderMenu();
+      updateCartBar();
+      pushHistory({ id: result.id, orderNumber: result.orderNumber, total: result.total, ts: Date.now() });
+      orderSheetBackdrop.hidden = true;
+      openStatusSheet(result.id);
+      renderHistory();
+    }).catch(function(err){
+      console.error(err);
+      toast('주문에 실패했어요 (' + (err.code || err.message) + ')');
+    }).finally(function(){
+      btn.disabled = false;
+      btn.textContent = '주문 확정하기';
+    });
+  }
+
+  // ---------- 상태 시트 ----------
+  var statusSheetBackdrop = document.getElementById('statusSheetBackdrop');
+  document.getElementById('statusSheetClose').addEventListener('click', function(){
+    statusSheetBackdrop.hidden = true;
+    if (currentOrderUnsub){ currentOrderUnsub(); currentOrderUnsub = null; }
+  });
+  statusSheetBackdrop.addEventListener('click', function(e){
+    if (e.target === statusSheetBackdrop){
+      statusSheetBackdrop.hidden = true;
+      if (currentOrderUnsub){ currentOrderUnsub(); currentOrderUnsub = null; }
+    }
+  });
+  document.getElementById('statusOrderMoreBtn').addEventListener('click', function(){
+    statusSheetBackdrop.hidden = true;
+    if (currentOrderUnsub){ currentOrderUnsub(); currentOrderUnsub = null; }
+  });
+
+  var STATUS_LABEL = {
+    awaiting_payment: '입금 확인 대기중',
+    paid: '입금 확인 완료 · 준비중',
+    completed: '준비 완료!',
+    cancelled: '주문 취소됨'
+  };
+  var STATUS_DESC = {
+    awaiting_payment: '스태프가 계좌 입금 내역을 확인하고 있어요. 잠시만 기다려주세요.',
+    paid: '입금이 확인됐어요! 맛있게 준비하고 있어요.',
+    completed: '주문하신 메뉴가 준비됐어요. 픽업대에서 받아가세요 🙌',
+    cancelled: '이 주문은 취소되었어요. 문의사항은 스태프에게 말씀해주세요.'
+  };
+
+  function openStatusSheet(orderId){
+    currentOrderId = orderId;
+    if (currentOrderUnsub) currentOrderUnsub();
+    statusSheetBackdrop.hidden = false;
+    currentOrderUnsub = db.collection('orders').doc(orderId).onSnapshot(function(snap){
+      if (!snap.exists) return;
+      renderStatus(snap.data());
+    }, function(err){ console.error(err); });
+  }
+
+  function renderStatus(order){
+    document.getElementById('statusOrderNumber').textContent = '#' + order.orderNumber;
+    var badge = document.getElementById('statusBadge');
+    var status = order.status || 'awaiting_payment';
+    badge.className = 'status-badge st-' + status;
+    badge.textContent = STATUS_LABEL[status] || status;
+    document.getElementById('statusDesc').textContent = STATUS_DESC[status] || '';
+    var lw = document.getElementById('statusLines');
+    lw.innerHTML = (order.items||[]).map(function(l){
+      return '<div class="order-line"><span class="name">' + escapeHtml(l.name) + ' <span class="sub">x' + l.qty + '</span></span><span>' + won(l.subtotal) + '</span></div>';
+    }).join('');
+    document.getElementById('statusTotal').textContent = won(order.totalAmount);
+  }
+
+  // ---------- 내 주문내역 ----------
+  var historySheetBackdrop = document.getElementById('historySheetBackdrop');
+  document.getElementById('historyBtn').addEventListener('click', function(){
+    historySheetBackdrop.hidden = false;
+    renderHistory();
+  });
+  document.getElementById('historySheetClose').addEventListener('click', function(){ historySheetBackdrop.hidden = true; });
+  historySheetBackdrop.addEventListener('click', function(e){ if (e.target === historySheetBackdrop) historySheetBackdrop.hidden = true; });
+
+  function renderHistory(){
+    var list = document.getElementById('historyList');
+    var h = getHistory();
+    if (h.length === 0){
+      list.innerHTML = '<div class="empty-state">아직 주문 내역이 없어요</div>';
+      return;
+    }
+    if (!db) return;
+    var rendered = 0;
+    var frag = document.createElement('div');
+    h.forEach(function(entry){
+      var row = document.createElement('div');
+      row.className = 'history-item';
+      row.innerHTML = '<div class="history-item-head"><span>#' + entry.orderNumber + '</span><span class="status-badge" id="hstatus-' + entry.id + '">…</span></div>' +
+        '<div class="history-item-sub">' + won(entry.total) + '</div>';
+      row.addEventListener('click', function(){
+        historySheetBackdrop.hidden = true;
+        openStatusSheet(entry.id);
+      });
+      frag.appendChild(row);
+      db.collection('orders').doc(entry.id).get().then(function(snap){
+        var el = document.getElementById('hstatus-' + entry.id);
+        if (!el || !snap.exists) return;
+        var status = snap.data().status || 'awaiting_payment';
+        el.className = 'status-badge st-' + status;
+        el.textContent = STATUS_LABEL[status] || status;
+      }).catch(function(){});
+    });
+    list.innerHTML = '';
+    list.appendChild(frag);
+  }
+
+})();
+</script>
+</body>
+</html>

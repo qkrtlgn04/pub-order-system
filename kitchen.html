@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>주방 화면</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15120d;
+    --surface:#211b13;
+    --surface-2:#2b2318;
+    --border:#3c3220;
+    --text:#f5efe3;
+    --text-muted:#b3a890;
+    --accent:#f2a93b;
+    --accent-strong:#ffc665;
+    --cta:#d64545;
+    --cta-strong:#ea5b5b;
+    --success:#4caf6d;
+    --pending:#e0a83e;
+    --info:#5fb3ee;
+    --danger:#d64545;
+    --radius:16px;
+    --radius-sm:10px;
+    color-scheme: dark;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  [hidden]{display:none!important;}
+  button, input{ font-family:inherit; }
+
+  /* ---------- PIN 게이트 ---------- */
+  #pinGate{
+    min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .pin-card{
+    width:100%; max-width:340px; background:var(--surface); border:1px solid var(--border);
+    border-radius: var(--radius); padding:28px 24px; text-align:center;
+  }
+  .pin-card h1{ font-family:'Black Han Sans',sans-serif; color:var(--accent); font-size:24px; margin:0 0 6px; }
+  .pin-card p{ color:var(--text-muted); font-size:13.5px; margin:0 0 18px; }
+  #pinInput{
+    width:100%; text-align:center; letter-spacing:10px; font-size:22px; padding:13px;
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:var(--radius-sm);
+  }
+  #pinInput:focus{ outline:none; border-color:var(--accent); }
+  #pinSubmit{
+    width:100%; margin-top:14px; background:var(--cta); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:13px; font-size:15px; font-weight:800; cursor:pointer;
+  }
+  .pin-hint{ margin-top:14px !important; font-size:11.5px !important; color:var(--text-muted); }
+  .pin-error{ color:var(--danger); font-size:12.5px; margin-top:8px; min-height:16px; }
+
+  /* ---------- 대시보드 레이아웃 ---------- */
+  #dashboard{ min-height:100dvh; display:flex; flex-direction:column; }
+  .kb-topbar{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    padding: calc(16px + env(safe-area-inset-top,0px)) 22px 14px;
+    border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--bg); z-index:10;
+  }
+  .kb-title{ font-family:'Black Han Sans',sans-serif; color:var(--accent); font-size:20px; margin-right:auto; }
+  .kb-tabs{ display:flex; gap:6px; flex-wrap:wrap; }
+  .kb-tabs button{
+    background:var(--surface); border:1px solid var(--border); color:var(--text-muted);
+    border-radius:999px; padding:8px 16px; font-size:13.5px; font-weight:700; cursor:pointer;
+  }
+  .kb-tabs button.active{ background:var(--accent); color:#1c1508; border-color:var(--accent); }
+  .kb-clock{ font-size:12.5px; color:var(--text-muted); }
+
+  .kb-tab{ display:none; padding: 18px 22px 60px; max-width:1100px; width:100%; margin:0 auto; }
+  .kb-tab.active{ display:block; }
+
+  /* ---------- 주문 현황 ---------- */
+  .orders-toolbar{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; font-size:13.5px; color:var(--text-muted);
+  }
+  .orders-toolbar label{ display:flex; align-items:center; gap:6px; cursor:pointer; }
+  .orders-toolbar input[type=checkbox]{ accent-color:var(--accent); width:15px; height:15px; }
+  .orders-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap:12px;
+  }
+  .order-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px; display:flex; flex-direction:column; gap:8px; border-left:4px solid var(--pending);
+  }
+  .order-card.status-paid{ border-left-color: var(--info); }
+  .order-card.status-completed{ border-left-color: var(--success); opacity:0.75; }
+  .order-card.status-cancelled{ border-left-color: var(--danger); opacity:0.6; }
+  .order-card.flash{ animation: flashCard 1.4s ease; }
+  @keyframes flashCard{ 0%{ box-shadow:0 0 0 3px var(--accent-strong);} 100%{ box-shadow:0 0 0 0 transparent; } }
+
+  .order-card-head{ display:flex; align-items:center; justify-content:space-between; }
+  .order-num{ font-family:'Black Han Sans',sans-serif; font-size:20px; color:var(--accent); }
+  .order-time{ font-size:12px; color:var(--text-muted); }
+  .badge{ display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:800; }
+  .badge::before{ content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .badge-pending{ background:rgba(224,168,62,0.15); color:var(--pending); }
+  .badge-paid{ background:rgba(95,179,238,0.15); color:var(--info); }
+  .badge-completed{ background:rgba(76,175,109,0.15); color:var(--success); }
+  .badge-cancelled{ background:rgba(214,69,69,0.15); color:var(--danger); }
+
+  .order-items{ list-style:none; margin:0; padding:0; font-size:13.5px; }
+  .order-items li{ display:flex; justify-content:space-between; padding:2px 0; }
+  .order-items li span:last-child{ color:var(--text-muted); }
+
+  .order-foot{ display:flex; justify-content:space-between; align-items:flex-end; border-top:1px dashed var(--border); padding-top:8px; }
+  .order-amount{ font-weight:800; color:var(--accent-strong); font-size:15px; }
+  .order-depositor{ font-size:12px; color:var(--text-muted); text-align:right; }
+  .order-note{ color:var(--text-muted); }
+
+  .order-proof-row{ display:flex; align-items:center; }
+  .proof-thumb{ height:44px; border-radius:8px; border:1px solid var(--border); cursor:pointer; }
+  .proof-missing{ font-size:11.5px; color:var(--text-muted); }
+
+  #imgLightbox{
+    position:fixed; inset:0; z-index:90; background:rgba(0,0,0,0.85);
+    display:flex; align-items:center; justify-content:center; padding:24px; cursor:zoom-out;
+  }
+  #imgLightbox img{ max-width:100%; max-height:100%; border-radius:10px; }
+
+  .order-actions{ display:flex; gap:8px; margin-top:2px; }
+  .order-actions button{ flex:1; border:none; border-radius:var(--radius-sm); padding:10px; font-size:13px; font-weight:800; cursor:pointer; }
+  .btn-confirm{ background:var(--info); color:#0d2438; }
+  .btn-ready{ background:var(--success); color:#0d2b17; }
+  .btn-cancel{ background:var(--surface-2); color:var(--danger); border:1px solid var(--border) !important; }
+
+  .completed-wrap{ margin-top:22px; color:var(--text-muted); }
+  .completed-wrap summary{ cursor:pointer; font-size:13.5px; font-weight:700; margin-bottom:12px; }
+  .orders-grid.muted .order-card{ opacity:0.65; }
+
+  /* ---------- 메뉴 관리 ---------- */
+  .panel{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+  .panel + .panel{ margin-top:16px; }
+  .panel h3{ margin:0 0 14px; font-size:15px; }
+  .form-row{ display:grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap:8px; margin-bottom:10px; align-items:center; }
+  .form-row input{
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px;
+    padding:9px 10px; font-size:13.5px; width:100%;
+  }
+  .form-row input:focus{ outline:none; border-color:var(--accent); }
+  .form-row button{ border:none; border-radius:8px; padding:9px 12px; font-size:12.5px; font-weight:800; cursor:pointer; white-space:nowrap; }
+  .menu-row{ display:grid; grid-template-columns: 1.4fr 1fr 1fr auto auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .menu-row:last-child{ border-bottom:none; }
+  .toggle-soldout{ background:var(--surface-2); border:1px solid var(--border); color:var(--text-muted); }
+  .toggle-soldout.on{ background:rgba(214,69,69,0.18); color:var(--danger); border-color:var(--danger); }
+  .btn-add{ background:var(--accent); color:#1c1508; }
+  .btn-delete{ background:var(--surface-2); color:var(--danger); border:1px solid var(--border); }
+  .add-form{ display:grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap:8px; margin-top:14px; }
+  .add-form input{ background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px; font-size:13.5px; }
+  .hint{ font-size:12px; color:var(--text-muted); margin-top:8px; }
+
+  /* ---------- 설정 ---------- */
+  .settings-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+  @media (max-width:560px){ .settings-grid{ grid-template-columns:1fr; } }
+  .settings-grid label{ display:block; }
+  .settings-grid .f-label{ font-size:12.5px; color:var(--text-muted); margin-bottom:5px; display:block; }
+  .settings-grid input{
+    width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    border-radius:8px; padding:11px 12px; font-size:14px;
+  }
+  .settings-grid input:focus{ outline:none; border-color:var(--accent); }
+  .btn-save{ margin-top:16px; background:var(--accent); color:#1c1508; border:none; border-radius:var(--radius-sm); padding:12px 20px; font-weight:800; cursor:pointer; }
+  .danger-zone{ border-color: rgba(214,69,69,0.4) !important; }
+  .danger-zone h3{ color:var(--danger); }
+  .btn-danger{ background:var(--cta); color:#fff; border:none; border-radius:var(--radius-sm); padding:11px 18px; font-weight:800; cursor:pointer; }
+
+  /* ---------- QR ---------- */
+  #qrcode{ background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-top:14px; }
+  .qr-flex{ display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; }
+  .print-card{ text-align:center; }
+
+  @media print{
+    body *{ visibility:hidden; }
+    #printArea, #printArea *{ visibility:visible; }
+    #printArea{ position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  }
+
+  .toast{
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%);
+    background:#2b2318; color:var(--text); border:1px solid var(--border);
+    padding:11px 18px; border-radius:999px; font-size:13.5px; z-index:80;
+    opacity:0; transition: opacity 0.25s; pointer-events:none;
+  }
+  .toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+
+<div id="pinGate">
+  <div class="pin-card">
+    <h1>주방 화면</h1>
+    <p>스태프 PIN을 입력하세요</p>
+    <input id="pinInput" inputmode="numeric" maxlength="6" placeholder="••••">
+    <button id="pinSubmit">입장</button>
+    <div class="pin-error" id="pinError"></div>
+    <p class="pin-hint">최초 기본 PIN은 <b>1234</b> 입니다. 입장 후 "설정" 탭에서 꼭 변경하세요.</p>
+  </div>
+</div>
+
+<div id="dashboard" hidden>
+  <header class="kb-topbar">
+    <div class="kb-title" id="kbStoreName">주점 주방</div>
+    <nav class="kb-tabs">
+      <button data-tab="orders" class="active">주문 현황</button>
+      <button data-tab="menu">메뉴 관리</button>
+      <button data-tab="settings">설정</button>
+      <button data-tab="qr">QR 코드</button>
+    </nav>
+    <div class="kb-clock" id="kbClock">--:--</div>
+  </header>
+
+  <section id="tab-orders" class="kb-tab active">
+    <div class="orders-toolbar">
+      <span><b id="activeCount">0</b>건 진행중</span>
+      <label><input type="checkbox" id="soundToggle" checked> 새 주문 알림음</label>
+    </div>
+    <div class="orders-grid" id="activeOrders"></div>
+    <details class="completed-wrap">
+      <summary>완료 / 취소된 주문 (<span id="completedCount">0</span>)</summary>
+      <div class="orders-grid muted" id="completedOrders"></div>
+    </details>
+  </section>
+
+  <section id="tab-menu" class="kb-tab">
+    <div class="panel">
+      <h3>메뉴 목록</h3>
+      <div id="menuManageList"><div class="hint">불러오는 중…</div></div>
+      <div class="add-form">
+        <input id="newItemName" placeholder="메뉴 이름 (예: 생맥주 500cc)">
+        <input id="newItemPrice" placeholder="가격 (숫자만)" inputmode="numeric">
+        <input id="newItemCategory" placeholder="분류 (예: 안주)">
+        <button class="btn-add" id="addItemBtn">추가</button>
+      </div>
+      <div class="hint">가격은 숫자만 입력하세요 (예: 5000). 분류를 비워두면 "기타"로 등록돼요.</div>
+    </div>
+  </section>
+
+  <section id="tab-settings" class="kb-tab">
+    <div class="panel">
+      <h3>상점 / 계좌 정보</h3>
+      <div class="settings-grid">
+        <label><span class="f-label">상점(주점) 이름</span><input id="setStoreName" placeholder="예: 낭만포차"></label>
+        <label><span class="f-label">은행명</span><input id="setBankName" placeholder="예: 카카오뱅크"></label>
+        <label><span class="f-label">계좌번호</span><input id="setAccountNumber" placeholder="예: 3333-01-1234567"></label>
+        <label><span class="f-label">예금주</span><input id="setAccountHolder" placeholder="예: 박시후"></label>
+      </div>
+      <button class="btn-save" id="saveSettingsBtn">저장</button>
+    </div>
+
+    <div class="panel">
+      <h3>주방 PIN 변경</h3>
+      <div class="settings-grid">
+        <label><span class="f-label">새 PIN (4~6자리 숫자)</span><input id="newPin" inputmode="numeric" maxlength="6" placeholder="••••"></label>
+        <label><span class="f-label">새 PIN 확인</span><input id="newPinConfirm" inputmode="numeric" maxlength="6" placeholder="••••"></label>
+      </div>
+      <button class="btn-save" id="savePinBtn">PIN 변경</button>
+    </div>
+
+    <div class="panel danger-zone">
+      <h3>위험 구역</h3>
+      <p class="hint">행사 시작 전 테스트 주문을 정리할 때만 사용하세요. 되돌릴 수 없습니다.</p>
+      <button class="btn-danger" id="resetOrdersBtn">전체 주문 내역 초기화</button>
+    </div>
+  </section>
+
+  <section id="tab-qr" class="kb-tab">
+    <div class="panel">
+      <h3>손님용 주문 페이지 QR</h3>
+      <label class="f-label" style="display:block;margin-bottom:6px;">손님용 페이지 주소 (index.html 배포 URL)</label>
+      <input id="qrUrlInput" style="width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;font-size:13.5px;">
+      <div class="qr-flex">
+        <div class="print-card" id="printArea">
+          <div id="qrcode"></div>
+          <div style="margin-top:8px;color:#000;font-weight:700;" id="qrCaption"></div>
+        </div>
+        <div style="max-width:340px;">
+          <p class="hint">위 주소가 맞는지 확인한 뒤, QR 코드를 인쇄해서 테이블마다 붙여두세요. 손님이 스캔하면 바로 주문 페이지로 연결됩니다.</p>
+          <button class="btn-save" id="printQrBtn">인쇄하기</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="imgLightbox" hidden><img id="imgLightboxImg" src="" alt="입금 확인 캡처 크게 보기"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  function won(n){ return (Number(n)||0).toLocaleString('ko-KR') + '원'; }
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h);
+    t._h = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+  }
+  function fmtTime(ts){
+    if (!ts || !ts.toDate) return '--:--';
+    var d = ts.toDate();
+    return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+
+  var db, auth, uid = null;
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    auth = firebase.auth();
+  }catch(e){ console.error(e); }
+
+  var settings = { storeName:'주점', bankName:'', accountNumber:'', accountHolder:'', kitchenPin:'1234' };
+  var settingsLoaded = false;
+  var settingsReady = null; // promise
+
+  function ensureDefaults(){
+    var settingsRef = db.collection('settings').doc('main');
+    var counterRef = db.collection('settings').doc('counter');
+    return settingsRef.get().then(function(snap){
+      if (!snap.exists){
+        return settingsRef.set({
+          storeName:'우리 주점', bankName:'', accountNumber:'', accountHolder:'', kitchenPin:'1234'
+        });
+      }
+    }).then(function(){
+      return counterRef.get();
+    }).then(function(snap){
+      if (!snap.exists) return counterRef.set({ nextOrderNumber: 1 });
+    }).then(function(){
+      return db.collection('menu').limit(1).get();
+    }).then(function(qs){
+      if (qs.empty){
+        var batch = db.batch();
+        var sample = [
+          { name:'생맥주 500cc', price:4000, category:'주류', order:1 },
+          { name:'소주', price:5000, category:'주류', order:2 },
+          { name:'감자튀김', price:6000, category:'안주', order:3 },
+          { name:'닭강정', price:12000, category:'안주', order:4 },
+          { name:'제로콜라', price:2000, category:'음료', order:5 }
+        ];
+        sample.forEach(function(it){
+          var ref = db.collection('menu').doc();
+          batch.set(ref, Object.assign({ soldOut:false }, it));
+        });
+        return batch.commit();
+      }
+    });
+  }
+
+  // ---------- PIN 게이트 ----------
+  var pinGate = document.getElementById('pinGate');
+  var dashboard = document.getElementById('dashboard');
+  var AUTH_KEY = 'pub_kitchen_authed_v1';
+
+  function boot(){
+    if (!auth){ document.getElementById('pinError').textContent = '앱 연결에 실패했어요. firebase-config.js를 확인해주세요.'; return; }
+    auth.onAuthStateChanged(function(user){
+      if (!user) return;
+      uid = user.uid;
+      settingsReady = ensureDefaults().then(function(){
+        return db.collection('settings').doc('main').get();
+      }).then(function(snap){
+        if (snap.exists) settings = Object.assign(settings, snap.data());
+        settingsLoaded = true;
+        if (sessionStorage.getItem(AUTH_KEY) === '1'){
+          enterDashboard();
+        }
+      }).catch(function(err){
+        console.error(err);
+        document.getElementById('pinError').textContent = '연결 실패: ' + (err.code || err.message);
+      });
+    });
+    auth.signInAnonymously().catch(function(err){
+      console.error(err);
+      document.getElementById('pinError').textContent = '연결 실패 (' + err.code + ')';
+    });
+  }
+  boot();
+
+  document.getElementById('pinSubmit').addEventListener('click', trySubmitPin);
+  document.getElementById('pinInput').addEventListener('keydown', function(e){ if (e.key === 'Enter') trySubmitPin(); });
+
+  function trySubmitPin(){
+    var val = document.getElementById('pinInput').value.trim();
+    var errEl = document.getElementById('pinError');
+    if (!settingsLoaded){ errEl.textContent = '연결 중이에요. 잠시 후 다시 시도해주세요.'; return; }
+    if (val === (settings.kitchenPin || '1234')){
+      sessionStorage.setItem(AUTH_KEY, '1');
+      errEl.textContent = '';
+      enterDashboard();
+    }else{
+      errEl.textContent = 'PIN이 일치하지 않아요.';
+    }
+  }
+
+  function enterDashboard(){
+    pinGate.hidden = true;
+    dashboard.hidden = false;
+    document.getElementById('kbStoreName').textContent = (settings.storeName || '주점') + ' 주방';
+    document.title = (settings.storeName || '주점') + ' 주방';
+    startClock();
+    initTabs();
+    initOrders();
+    initMenuManage();
+    initSettingsForm();
+    initQr();
+    subscribeSettingsLive();
+  }
+
+  function subscribeSettingsLive(){
+    db.collection('settings').doc('main').onSnapshot(function(snap){
+      if (!snap.exists) return;
+      settings = Object.assign(settings, snap.data());
+      document.getElementById('kbStoreName').textContent = (settings.storeName || '주점') + ' 주방';
+    });
+  }
+
+  function startClock(){
+    function tick(){
+      var d = new Date();
+      document.getElementById('kbClock').textContent =
+        String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+    }
+    tick(); setInterval(tick, 1000);
+  }
+
+  // ---------- 탭 ----------
+  function initTabs(){
+    document.querySelectorAll('.kb-tabs button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        document.querySelectorAll('.kb-tabs button').forEach(function(b){ b.classList.remove('active'); });
+        document.querySelectorAll('.kb-tab').forEach(function(t){ t.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+  }
+
+  // ---------- 주문 현황 ----------
+  var STATUS_BADGE = {
+    awaiting_payment: { cls:'badge-pending', label:'입금 확인 대기' },
+    paid: { cls:'badge-paid', label:'입금 확인 완료' },
+    completed: { cls:'badge-completed', label:'준비 완료' },
+    cancelled: { cls:'badge-cancelled', label:'취소됨' }
+  };
+  var firstOrdersSnapshot = true;
+  var knownOrderIds = {};
+
+  function initOrders(){
+    db.collection('orders').orderBy('createdAt','asc').onSnapshot(function(snap){
+      var active = [], completed = [];
+      snap.forEach(function(doc){
+        var d = doc.data();
+        var row = Object.assign({ id: doc.id }, d);
+        if (d.status === 'completed' || d.status === 'cancelled') completed.push(row);
+        else active.push(row);
+      });
+
+      document.getElementById('activeCount').textContent = active.length;
+      document.getElementById('completedCount').textContent = completed.length;
+
+      renderOrderGrid('activeOrders', active, true);
+      renderOrderGrid('completedOrders', completed.slice().reverse(), false);
+
+      if (!firstOrdersSnapshot){
+        snap.docChanges().forEach(function(ch){
+          if (ch.type === 'added' && !knownOrderIds[ch.doc.id]){
+            onNewOrder(ch.doc.id);
+          }
+        });
+      }
+      snap.forEach(function(doc){ knownOrderIds[doc.id] = true; });
+      firstOrdersSnapshot = false;
+    }, function(err){
+      console.error(err);
+      document.getElementById('activeOrders').innerHTML = '<div class="hint">주문 목록을 불러오지 못했어요. 보안 규칙을 확인해주세요.</div>';
+    });
+  }
+
+  function renderOrderGrid(containerId, orders, active){
+    var wrap = document.getElementById(containerId);
+    if (orders.length === 0){
+      wrap.innerHTML = '<div class="hint">' + (active ? '아직 들어온 주문이 없어요.' : '없음') + '</div>';
+      return;
+    }
+    wrap.innerHTML = orders.map(function(o){ return orderCardHtml(o); }).join('');
+    wrap.querySelectorAll('.btn-confirm').forEach(function(b){ b.addEventListener('click', function(){ updateOrderStatus(b.dataset.id, 'paid'); }); });
+    wrap.querySelectorAll('.btn-ready').forEach(function(b){ b.addEventListener('click', function(){ updateOrderStatus(b.dataset.id, 'completed'); }); });
+    wrap.querySelectorAll('.btn-cancel').forEach(function(b){ b.addEventListener('click', function(){
+      if (confirm('이 주문을 취소할까요?')) updateOrderStatus(b.dataset.id, 'cancelled');
+    }); });
+    wrap.querySelectorAll('.proof-thumb').forEach(function(img){
+      img.addEventListener('click', function(){ openLightbox(img.src); });
+    });
+  }
+
+  var imgLightbox = document.getElementById('imgLightbox');
+  var imgLightboxImg = document.getElementById('imgLightboxImg');
+  function openLightbox(src){
+    imgLightboxImg.src = src;
+    imgLightbox.hidden = false;
+  }
+  imgLightbox.addEventListener('click', function(){ imgLightbox.hidden = true; imgLightboxImg.src = ''; });
+
+  function orderCardHtml(o){
+    var status = o.status || 'awaiting_payment';
+    var sb = STATUS_BADGE[status] || STATUS_BADGE.awaiting_payment;
+    var itemsHtml = (o.items||[]).map(function(l){
+      return '<li><span>' + escapeHtml(l.name) + '</span><span>x' + l.qty + '</span></li>';
+    }).join('');
+    var actions = '';
+    if (status === 'awaiting_payment'){
+      actions = '<button class="btn-confirm" data-id="' + o.id + '">입금 확인</button><button class="btn-cancel" data-id="' + o.id + '">취소</button>';
+    } else if (status === 'paid'){
+      actions = '<button class="btn-ready" data-id="' + o.id + '">준비 완료</button><button class="btn-cancel" data-id="' + o.id + '">취소</button>';
+    }
+    var proofHtml = o.depositProofImage
+      ? '<img class="proof-thumb" src="' + o.depositProofImage + '" alt="입금 확인 캡처" title="탭해서 크게 보기">'
+      : '<span class="proof-missing">캡처 없음</span>';
+    return '<div class="order-card status-' + status + '" data-id="' + o.id + '">' +
+      '<div class="order-card-head"><span class="order-num">#' + o.orderNumber + '</span><span class="order-time">' + fmtTime(o.createdAt) + '</span></div>' +
+      '<span class="badge ' + sb.cls + '">' + sb.label + '</span>' +
+      '<ul class="order-items">' + itemsHtml + '</ul>' +
+      '<div class="order-foot"><div class="order-amount">' + won(o.totalAmount) + '</div>' +
+        '<div class="order-depositor">입금자 ' + escapeHtml(o.depositorName||'-') + (o.note ? '<div class="order-note">' + escapeHtml(o.note) + '</div>' : '') + '</div></div>' +
+      '<div class="order-proof-row">' + proofHtml + '</div>' +
+      (actions ? '<div class="order-actions">' + actions + '</div>' : '') +
+      '</div>';
+  }
+
+  function updateOrderStatus(id, status){
+    var patch = { status: status };
+    if (status === 'paid') patch.paidAt = firebase.firestore.FieldValue.serverTimestamp();
+    if (status === 'completed') patch.completedAt = firebase.firestore.FieldValue.serverTimestamp();
+    if (status === 'cancelled') patch.cancelledAt = firebase.firestore.FieldValue.serverTimestamp();
+    db.collection('orders').doc(id).update(patch).catch(function(err){
+      console.error(err); toast('업데이트 실패: ' + (err.code || err.message));
+    });
+  }
+
+  var audioCtx = null;
+  function beep(){
+    if (!document.getElementById('soundToggle').checked) return;
+    try{
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'sine'; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + 0.36);
+    }catch(e){}
+  }
+  function onNewOrder(id){
+    beep();
+    toast('새 주문이 들어왔어요');
+    setTimeout(function(){
+      var el = document.querySelector('.order-card[data-id="' + id + '"]');
+      if (el){ el.classList.add('flash'); setTimeout(function(){ el.classList.remove('flash'); }, 1500); }
+    }, 50);
+  }
+
+  // ---------- 메뉴 관리 ----------
+  function initMenuManage(){
+    db.collection('menu').onSnapshot(function(snap){
+      var rows = [];
+      snap.forEach(function(doc){ rows.push(Object.assign({ id: doc.id }, doc.data())); });
+      rows.sort(function(a,b){
+        if (a.order != null && b.order != null) return a.order - b.order;
+        return (a.name||'').localeCompare(b.name||'','ko');
+      });
+      var wrap = document.getElementById('menuManageList');
+      if (rows.length === 0){ wrap.innerHTML = '<div class="hint">등록된 메뉴가 없어요. 아래에서 추가해주세요.</div>'; return; }
+      wrap.innerHTML = rows.map(function(it){
+        return '<div class="menu-row" data-id="' + it.id + '">' +
+          '<input class="f-name" value="' + escapeHtml(it.name||'') + '">' +
+          '<input class="f-price" inputmode="numeric" value="' + (it.price||0) + '">' +
+          '<input class="f-category" value="' + escapeHtml(it.category||'') + '">' +
+          '<button class="toggle-soldout ' + (it.soldOut ? 'on' : '') + '">' + (it.soldOut ? '품절중' : '판매중') + '</button>' +
+          '<button class="btn-delete">삭제</button>' +
+          '</div>';
+      }).join('');
+
+      wrap.querySelectorAll('.menu-row').forEach(function(row){
+        var id = row.dataset.id;
+        var saveField = debounce(function(field, value){
+          var patch = {};
+          if (field === 'price') value = Number(value) || 0;
+          patch[field] = value;
+          db.collection('menu').doc(id).update(patch).catch(function(err){ toast('저장 실패: ' + err.message); });
+        }, 500);
+        row.querySelector('.f-name').addEventListener('input', function(e){ saveField('name', e.target.value.trim()); });
+        row.querySelector('.f-price').addEventListener('input', function(e){ saveField('price', e.target.value.trim()); });
+        row.querySelector('.f-category').addEventListener('input', function(e){ saveField('category', e.target.value.trim() || '기타'); });
+        row.querySelector('.toggle-soldout').addEventListener('click', function(e){
+          var willBeSoldOut = !e.target.classList.contains('on');
+          db.collection('menu').doc(id).update({ soldOut: willBeSoldOut }).catch(function(err){ toast('저장 실패: ' + err.message); });
+        });
+        row.querySelector('.btn-delete').addEventListener('click', function(){
+          if (confirm('이 메뉴를 삭제할까요?')) db.collection('menu').doc(id).delete().catch(function(err){ toast('삭제 실패: ' + err.message); });
+        });
+      });
+    }, function(err){ console.error(err); });
+
+    document.getElementById('addItemBtn').addEventListener('click', function(){
+      var name = document.getElementById('newItemName').value.trim();
+      var price = Number(document.getElementById('newItemPrice').value.trim()) || 0;
+      var category = document.getElementById('newItemCategory').value.trim() || '기타';
+      if (!name){ toast('메뉴 이름을 입력해주세요'); return; }
+      db.collection('menu').add({ name: name, price: price, category: category, soldOut:false, order: Date.now() }).then(function(){
+        document.getElementById('newItemName').value = '';
+        document.getElementById('newItemPrice').value = '';
+        document.getElementById('newItemCategory').value = '';
+        toast('메뉴를 추가했어요');
+      }).catch(function(err){ toast('추가 실패: ' + err.message); });
+    });
+  }
+
+  function debounce(fn, ms){
+    var t;
+    return function(){
+      var args = arguments;
+      clearTimeout(t);
+      t = setTimeout(function(){ fn.apply(null, args); }, ms);
+    };
+  }
+
+  // ---------- 설정 ----------
+  function initSettingsForm(){
+    document.getElementById('setStoreName').value = settings.storeName || '';
+    document.getElementById('setBankName').value = settings.bankName || '';
+    document.getElementById('setAccountNumber').value = settings.accountNumber || '';
+    document.getElementById('setAccountHolder').value = settings.accountHolder || '';
+
+    document.getElementById('saveSettingsBtn').addEventListener('click', function(){
+      var patch = {
+        storeName: document.getElementById('setStoreName').value.trim() || '주점',
+        bankName: document.getElementById('setBankName').value.trim(),
+        accountNumber: document.getElementById('setAccountNumber').value.trim(),
+        accountHolder: document.getElementById('setAccountHolder').value.trim()
+      };
+      db.collection('settings').doc('main').set(patch, { merge:true }).then(function(){
+        toast('저장했어요');
+      }).catch(function(err){ toast('저장 실패: ' + err.message); });
+    });
+
+    document.getElementById('savePinBtn').addEventListener('click', function(){
+      var p1 = document.getElementById('newPin').value.trim();
+      var p2 = document.getElementById('newPinConfirm').value.trim();
+      if (!/^\d{4,6}$/.test(p1)){ toast('PIN은 4~6자리 숫자로 입력해주세요'); return; }
+      if (p1 !== p2){ toast('PIN이 서로 달라요'); return; }
+      db.collection('settings').doc('main').set({ kitchenPin: p1 }, { merge:true }).then(function(){
+        toast('PIN을 변경했어요');
+        document.getElementById('newPin').value = '';
+        document.getElementById('newPinConfirm').value = '';
+      }).catch(function(err){ toast('변경 실패: ' + err.message); });
+    });
+
+    document.getElementById('resetOrdersBtn').addEventListener('click', function(){
+      if (!confirm('모든 주문 내역을 정말 삭제할까요? 되돌릴 수 없습니다.')) return;
+      if (!confirm('한 번 더 확인할게요. 진짜 전체 삭제할까요?')) return;
+      db.collection('orders').get().then(function(snap){
+        var batch = db.batch();
+        snap.forEach(function(doc){ batch.delete(doc.ref); });
+        return batch.commit();
+      }).then(function(){
+        return db.collection('settings').doc('counter').set({ nextOrderNumber: 1 });
+      }).then(function(){
+        toast('전체 주문을 초기화했어요');
+      }).catch(function(err){ toast('초기화 실패: ' + err.message); });
+    });
+  }
+
+  // ---------- QR ----------
+  function initQr(){
+    var input = document.getElementById('qrUrlInput');
+    var guess = location.href.replace(/kitchen\.html.*$/, 'index.html');
+    input.value = guess;
+
+    function draw(){
+      var el = document.getElementById('qrcode');
+      el.innerHTML = '';
+      var url = input.value.trim();
+      if (!url) return;
+      try{
+        new QRCode(el, { text: url, width: 220, height: 220, colorDark:'#15120d', colorLight:'#ffffff' });
+      }catch(e){ console.error(e); }
+      document.getElementById('qrCaption').textContent = settings.storeName || '주점';
+    }
+    draw();
+    input.addEventListener('change', draw);
+    document.getElementById('printQrBtn').addEventListener('click', function(){ window.print(); });
+  }
+
+})();
+</script>
+</body>
+</html>

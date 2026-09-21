@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// ============================================================
+// Firestore 보안 규칙
+// Firebase 콘솔 → Firestore Database → 규칙(Rules) 탭에
+// 이 내용을 그대로 붙여넣고 "게시(Publish)" 하세요.
+//
+// 방식: 손님은 "익명 로그인(Anonymous Auth)" 상태로 접속하므로
+// request.auth != null 이 참이 됩니다. 즉 "로그인한 사람"이면
+// 누구나(스태프/손님 구분 없이) 메뉴를 보고 주문을 넣을 수 있고,
+// 주방 화면에서는 주문 상태를 바꿀 수 있습니다.
+//
+// 주의: 이 규칙은 "하룻밤 행사용" 수준의 가벼운 보안입니다.
+// 은행 계좌번호처럼 원래도 공개해야 하는 정보만 다루고,
+// 실제 결제(계좌이체)는 Firebase가 아니라 손님이 본인 은행 앱으로
+// 직접 처리한다는 전제입니다. 메뉴/주문을 장난으로 조작하는 손님이
+// 있을 수 있다는 점은 감안해주세요(행사 후 "설정" 탭의 PIN을 아는
+// 스태프만 주방 화면에 들어올 수 있습니다).
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 메뉴: 누구나 읽기 가능, 로그인(익명 포함)한 사람만 쓰기 가능
+    match /menu/{itemId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // 주문: 누구나 읽기 가능(주방 화면/손님 상태 확인),
+    // 로그인한 사람만 생성/수정 가능, 삭제는 막음(취소는 상태값으로 처리)
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null; // 관리자 "전체 초기화" 기능에 필요
+    }
+
+    // 설정(상점명/계좌정보/PIN/주문번호 카운터)
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
