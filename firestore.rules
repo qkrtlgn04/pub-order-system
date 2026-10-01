@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // ============================================================
-// Firestore 보안 규칙 (v4 — 테이블 번호 + 테이블·예약)
+// Firestore 보안 규칙 (v5 — 테이블 번호 + 테이블·예약 + 웨이팅)
 // Firebase 콘솔 → Firestore Database → 규칙(Rules) 탭에
 // 이 내용을 "전부" 덮어써서 붙여넣고 "게시(Publish)" 하세요.
 //
@@ -45,6 +45,25 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // 웨이팅: 누구나 읽기(대기 순서 확인), 손님은 등록과 "본인 취소"만 가능
+    match /waitlist/{waitId} {
+      allow read: if true;
+      allow create: if request.auth != null || isValidWait(request.resource.data);
+      allow update: if request.auth != null
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+            && request.resource.data.status == 'cancelled'
+            && resource.data.status in ['waiting', 'called']);
+      allow delete: if request.auth != null;
+    }
+
+    // 웨이팅 번호 카운터: 손님은 "1 올리기"만 가능
+    match /settings/waitCounter {
+      allow create: if request.resource.data.keys().hasOnly(['nextWaitNumber'])
+                    && request.resource.data.nextWaitNumber == 2;
+      allow update: if request.resource.data.keys().hasOnly(['nextWaitNumber'])
+                    && request.resource.data.nextWaitNumber == resource.data.nextWaitNumber + 1;
+    }
+
     // 설정(상점명/계좌/PIN): 누구나 읽기, 주방 화면만 수정
     match /settings/{docId} {
       allow read: if true;
@@ -57,6 +76,15 @@ service cloud.firestore {
                     && request.resource.data.nextOrderNumber == 2;
       allow update: if request.resource.data.keys().hasOnly(['nextOrderNumber'])
                     && request.resource.data.nextOrderNumber == resource.data.nextOrderNumber + 1;
+    }
+
+    function isValidWait(d) {
+      return d.keys().hasOnly(['waitNumber', 'name', 'people', 'status', 'createdAt'])
+        && d.status == 'waiting'
+        && d.waitNumber is int && d.waitNumber > 0
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 20
+        && d.people is int && d.people > 0 && d.people <= 20
+        && d.createdAt == request.time;
     }
 
     function isValidNewOrder(d) {

@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+JP:wght@700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f7f3ec;
+    --bg:#ffffff;
     --paper:#faf6ef;
     --surface:#ffffff;
     --surface-2:#f4efe6;
@@ -114,8 +114,8 @@
 
   .order-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
   .order-table{ display:flex; align-items:baseline; gap:2px; line-height:1; color:var(--red); }
-  .order-table .tn{ font-family:var(--serif); font-weight:700; font-size:54px; letter-spacing:-1px; }
-  .order-table .tl{ font-size:18px; font-weight:800; }
+  .order-table .tn{ font-family:var(--serif); font-weight:700; font-size:72px; letter-spacing:-2px; }
+  .order-table .tl{ font-size:22px; font-weight:800; margin-left:2px; }
   .order-table.none .tn{ font-size:22px; color:var(--text-muted); }
   .order-meta{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
   .order-num{ font-size:13px; font-weight:800; color:var(--ink); }
@@ -201,6 +201,109 @@
   .danger-zone h3{ color:var(--danger); }
   .btn-danger{ background:#fff; color:var(--danger); border:1.5px solid var(--danger); border-radius:var(--radius-sm); padding:11px 18px; font-weight:800; cursor:pointer; }
 
+  /* ---------- 테이블 · 예약 ---------- */
+  .board-legend{ display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--text-muted); margin:-4px 0 14px; }
+  .board-legend i{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .table-board{ display:grid; grid-template-columns: repeat(auto-fill, minmax(190px,1fr)); gap:12px; }
+  @media (max-width:560px){
+    .table-board{ grid-template-columns: 1fr 1fr; gap:8px; }
+    .tcard{ padding:10px; min-height:0; }
+    .tcard-no{ font-size:28px; }
+    .tcard-actions{ flex-direction:column; }
+  }
+  .tcard{
+    border-radius:var(--radius); padding:12px 14px 14px; display:flex; flex-direction:column; gap:6px;
+    border:1.5px solid var(--border); background:#fff; min-height:150px;
+  }
+  .tcard-head{ display:flex; align-items:baseline; justify-content:space-between; }
+  .tcard-no{ font-family:var(--serif); font-weight:700; font-size:34px; line-height:1; }
+  .tcard-no small{ font-size:15px; font-family:'Noto Sans KR',sans-serif; font-weight:800; margin-left:2px; }
+  .tcard-state{ font-size:12px; font-weight:800; padding:3px 9px; border-radius:999px; }
+  .tcard-info{ font-size:13px; line-height:1.45; flex:1; }
+  .tcard-info b{ font-size:14.5px; }
+  .tcard-sub{ font-size:12px; color:var(--text-muted); }
+  .tcard-orders{ display:inline-block; font-size:11.5px; font-weight:800; background:#fdf3e1; color:var(--pending); padding:2px 8px; border-radius:6px; margin-top:4px; }
+  .tcard-actions{ display:flex; gap:6px; }
+  .tcard-actions button{ flex:1; border:none; border-radius:8px; padding:9px 6px; font-size:12.5px; font-weight:800; cursor:pointer; }
+  .tc-free .tcard-no{ color:var(--success); }
+  .tc-free .tcard-state{ background:#e6f4ea; color:var(--success); }
+  .tc-free .tcard-actions button{ background:var(--surface-2); color:var(--ink); border:1px solid var(--border); }
+  .tc-busy{ background:var(--ink); border-color:var(--ink); color:#fff; }
+  .tc-busy .tcard-state{ background:rgba(255,255,255,0.15); color:#fff; }
+  .tc-busy .tcard-sub{ color:rgba(255,255,255,0.65); }
+  .tc-busy .tcard-actions button{ background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); }
+  .tc-hold{ background:var(--red-soft); border-color:var(--red); }
+  .tc-hold .tcard-no{ color:var(--red); }
+  .tc-hold .tcard-state{ background:var(--red); color:#fff; }
+  .tc-hold .tcard-actions .primary{ background:var(--red); color:#fff; }
+  .tc-hold .tcard-actions .ghost{ background:#fff; color:var(--red); border:1px solid var(--red); }
+  .tc-late{ background:#fff7e6; border-color:var(--pending); }
+  .tc-late .tcard-no{ color:var(--pending); }
+  .tc-late .tcard-state{ background:var(--pending); color:#fff; }
+  .tc-late .tcard-actions .primary{ background:var(--red); color:#fff; }
+  .tc-late .tcard-actions .ghost{ background:#fff; color:var(--pending); border:1px solid var(--pending); }
+
+  .wait-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .wait-stats{ font-size:14px; color:var(--text-muted); }
+  .wait-stats b{ color:var(--red); font-size:20px; }
+  .wait-row{
+    display:grid; grid-template-columns: 74px 1fr 120px auto; gap:10px; align-items:center;
+    padding:10px 12px; border:1px solid var(--border); border-radius:12px; margin-bottom:8px; background:#fff;
+  }
+  .wait-row.called{ background:var(--red-soft); border-color:var(--red); }
+  .wait-no{ font-family:var(--serif); font-weight:700; font-size:30px; color:var(--red); line-height:1; }
+  .wait-no small{ font-size:13px; font-family:'Noto Sans KR',sans-serif; font-weight:800; }
+  .wait-who b{ font-size:15.5px; }
+  .wait-row select{ background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:9px; font-size:13px; width:100%; font-family:inherit; }
+  .wait-btns{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+  .wait-btns button{ border:none; border-radius:8px; padding:9px 12px; font-size:12.5px; font-weight:800; cursor:pointer; }
+  .wait-btns .w-call{ background:var(--red); color:#fff; }
+  .wait-btns .w-seat{ background:var(--success); color:#fff; }
+  .wait-btns .w-recall{ background:#fff; color:var(--red); border:1px solid var(--red); }
+  .wait-btns .w-cancel{ background:#fff; color:var(--text-muted); border:1px solid var(--border); }
+  .btn-mini{ background:#fff; color:var(--text-muted); border:1px solid var(--border); border-radius:8px; padding:7px 11px; font-size:12px; font-weight:700; cursor:pointer; }
+  @media (max-width:760px){
+    .wait-row{ grid-template-columns: 64px 1fr; }
+    .wait-row select, .wait-btns{ grid-column: 1 / -1; }
+    .wait-btns button{ flex:1; }
+  }
+  .qr-card.entrance{ border-width:3px; background:var(--red-soft); }
+
+  .res-form{ display:grid; grid-template-columns: 150px 110px 1fr 80px 120px 130px; gap:8px; }
+  .res-form input, .res-form select, .res-item select{
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px;
+    padding:10px; font-size:13.5px; width:100%; min-width:0; font-family:inherit;
+  }
+  .res-form input:focus, .res-form select:focus{ outline:none; border-color:var(--red); background:#fff; }
+  .res-form .res-memo{ grid-column: 1 / -2; }
+  .res-form .btn-add{ border:none; border-radius:8px; padding:10px; font-weight:800; cursor:pointer; }
+  @media (max-width:760px){
+    .res-form{ grid-template-columns: 1fr 1fr; }
+    .res-form .res-name, .res-form .res-memo, .res-form .btn-add{ grid-column: 1 / -1; }
+  }
+  .res-list{ margin-top:16px; }
+  .res-date{ font-size:13px; font-weight:800; color:var(--text-muted); margin:14px 0 6px; }
+  .res-item{
+    display:grid; grid-template-columns: 70px 1fr 110px auto; gap:10px; align-items:center;
+    padding:10px 0; border-top:1px solid var(--border);
+  }
+  .res-time{ font-family:var(--serif); font-weight:700; font-size:22px; color:var(--red); }
+  .res-who b{ font-size:15px; }
+  .res-who .tcard-sub{ margin-top:2px; }
+  .res-btns{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+  .res-btns button{ border:none; border-radius:8px; padding:8px 11px; font-size:12px; font-weight:800; cursor:pointer; }
+  .res-btns .b-arrive{ background:var(--red); color:#fff; }
+  .res-btns .b-noshow{ background:#fff; color:var(--pending); border:1px solid var(--pending); }
+  .res-btns .b-del{ background:#fff; color:var(--text-muted); border:1px solid var(--border); }
+  .res-item.done{ opacity:0.5; }
+  .res-status{ font-size:11.5px; font-weight:800; }
+  @media (max-width:760px){
+    .res-item{ grid-template-columns: 64px 1fr; }
+    .res-item select, .res-btns{ grid-column: 1 / -1; }
+    .res-btns{ justify-content:stretch; }
+    .res-btns button{ flex:1; }
+  }
+
   /* ---------- 메뉴 사진 ---------- */
   .photo-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap:12px; }
   .photo-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:8px; }
@@ -270,6 +373,7 @@
     <div class="kb-title" id="kbStoreName">주점 주방</div>
     <nav class="kb-tabs">
       <button data-tab="orders" class="active">주문 현황</button>
+      <button data-tab="tables">테이블·예약</button>
       <button data-tab="menu">메뉴 관리</button>
       <button data-tab="settings">설정</button>
       <button data-tab="qr">QR 코드</button>
@@ -287,6 +391,47 @@
       <summary>완료 / 취소된 주문 (<span id="completedCount">0</span>)</summary>
       <div class="orders-grid muted" id="completedOrders"></div>
     </details>
+  </section>
+
+  <section id="tab-tables" class="kb-tab">
+    <div class="panel">
+      <h3>테이블 현황</h3>
+      <div class="board-legend">
+        <span><i style="background:var(--success)"></i>빈 자리</span>
+        <span><i style="background:var(--ink)"></i>사용 중</span>
+        <span><i style="background:var(--red)"></i>예약석 (예약 30분 전부터 자동)</span>
+        <span><i style="background:var(--pending)"></i>예약 시간 15분 지남</span>
+      </div>
+      <div class="order-note-box" id="unassignedBanner" hidden style="margin-bottom:12px;"></div>
+      <div class="table-board" id="tableBoard"><div class="hint">불러오는 중…</div></div>
+      <p class="hint">손님을 앉히면 "착석", 손님이 나가면 "비우기"를 눌러주세요. 모든 스태프 기기에 똑같이 보여요.</p>
+    </div>
+
+    <div class="panel">
+      <h3>웨이팅</h3>
+      <div class="wait-head">
+        <div class="wait-stats">대기 <b id="waitCount">0</b>팀 · 호출 중 <b id="calledCount" style="font-size:16px">0</b>팀</div>
+        <button class="btn-mini" id="resetWaitBtn">대기 명단 초기화</button>
+      </div>
+      <div id="waitList"><div class="hint">불러오는 중…</div></div>
+      <p class="hint">손님이 주문 화면(또는 입구 QR)에서 웨이팅을 등록하면 여기에 순서대로 떠요. "호출"을 누르면 손님 폰에 <b>입장 가능</b> 알림이 진동과 함께 가고, 고른 테이블 번호도 같이 보여요. 손님이 오면 "입장"을 눌러주세요.</p>
+    </div>
+
+    <div class="panel">
+      <h3>예약</h3>
+      <div class="res-form">
+        <input type="date" id="resDate">
+        <input type="time" id="resTime" step="300">
+        <input id="resName" class="res-name" placeholder="예약자 이름" maxlength="20">
+        <input id="resPeople" type="number" min="1" max="20" placeholder="인원">
+        <select id="resTable"></select>
+        <input id="resPhone" placeholder="연락처 뒷 4자리" inputmode="numeric" maxlength="4">
+        <input id="resMemo" class="res-memo" placeholder="메모 (예: 생일, 모츠나베 미리 준비)" maxlength="60">
+        <button class="btn-add" id="addResBtn">예약 추가</button>
+      </div>
+      <p class="hint">연락처는 뒷자리 4자리만 적어주세요 (본인 확인용). 테이블을 "자동"으로 두면 도착했을 때 고르면 돼요.</p>
+      <div class="res-list" id="resList"><div class="hint">불러오는 중…</div></div>
+    </div>
   </section>
 
   <section id="tab-menu" class="kb-tab">
@@ -343,7 +488,7 @@
 
   <section id="tab-qr" class="kb-tab">
     <div class="panel">
-      <h3>테이블별 QR 코드</h3>
+      <h3>QR 코드 (입구 웨이팅 + 테이블별)</h3>
       <p class="hint" style="margin:-6px 0 14px;">테이블마다 다른 QR이에요. 손님이 스캔하면 그 테이블 번호가 자동으로 선택돼요. 인쇄해서 해당 번호 테이블에 붙여주세요. (테이블 수는 "설정" 탭에서 바꿀 수 있어요)</p>
       <div class="qr-tools">
         <label><span class="f-label">손님용 페이지 주소 (index.html 주소)</span><input id="qrUrlInput"></label>
@@ -486,6 +631,7 @@
     startClock();
     initTabs();
     initOrders();
+    initTables();
     initMenuManage();
     initSettingsForm();
     initQr();
@@ -498,7 +644,7 @@
       var before = settings.tableCount + '|' + settings.storeName;
       settings = Object.assign(settings, snap.data());
       document.getElementById('kbStoreName').textContent = (settings.storeName || '주점') + ' 주방';
-      if (before !== settings.tableCount + '|' + settings.storeName) drawQr();
+      if (before !== settings.tableCount + '|' + settings.storeName){ drawQr(); fillResTableSelect(); renderTableBoard(); renderResList(); }
     });
   }
 
@@ -531,6 +677,7 @@
     cancelled: { cls:'badge-cancelled', label:'취소됨' }
   };
   var firstOrdersSnapshot = true;
+  var activeOrdersCache = [];
   var knownOrderIds = {};
 
   function initOrders(){
@@ -546,6 +693,8 @@
       document.getElementById('activeCount').textContent = active.length;
       document.getElementById('completedCount').textContent = completed.length;
 
+      activeOrdersCache = active;
+      renderTableBoard();
       renderOrderGrid('activeOrders', active, true);
       renderOrderGrid('completedOrders', completed.slice().reverse(), false);
 
@@ -651,6 +800,342 @@
       var el = document.querySelector('.order-card[data-id="' + id + '"]');
       if (el){ el.classList.add('flash'); setTimeout(function(){ el.classList.remove('flash'); }, 1500); }
     }, 50);
+  }
+
+  // ---------- 테이블 · 예약 ----------
+  var tableState = {};      // '3' -> { occupied, since, partyName, reservationId }
+  var reservations = [];    // [{id, date, time, name, people, tableNo, phone4, memo, status}]
+  var HOLD_BEFORE_MIN = 30; // 예약 30분 전부터 예약석
+  var LATE_AFTER_MIN = 15;  // 예약 15분 지나면 노쇼 의심
+
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function todayKey(){ var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()); }
+  function resStart(r){
+    var p = (r.date || '').split('-'), t = (r.time || '00:00').split(':');
+    return new Date(+p[0], (+p[1]) - 1, +p[2], +t[0], +t[1]);
+  }
+  function tableTotal(){ return Math.max(1, Math.min(60, parseInt(settings.tableCount, 10) || 8)); }
+  function dateLabel(key){
+    if (key === todayKey()) return '오늘';
+    var p = key.split('-'); return (+p[1]) + '월 ' + (+p[2]) + '일';
+  }
+
+  function initTables(){
+    document.getElementById('resDate').value = todayKey();
+    fillResTableSelect();
+
+    db.collection('tables').onSnapshot(function(snap){
+      tableState = {};
+      snap.forEach(function(doc){ tableState[doc.id] = doc.data(); });
+      renderTableBoard();
+      renderWaitlist();
+    }, function(err){
+      console.error(err);
+      document.getElementById('tableBoard').innerHTML = '<div class="hint">테이블 정보를 불러오지 못했어요 (' + escapeHtml(err.code || err.message) + '). 보안 규칙을 최신으로 게시했는지 확인해주세요.</div>';
+    });
+
+    db.collection('reservations').onSnapshot(function(snap){
+      reservations = [];
+      snap.forEach(function(doc){ reservations.push(Object.assign({ id: doc.id }, doc.data())); });
+      reservations.sort(function(a,b){ return resStart(a) - resStart(b); });
+      renderTableBoard();
+      renderResList();
+    }, function(err){
+      console.error(err);
+      document.getElementById('resList').innerHTML = '<div class="hint">예약을 불러오지 못했어요 (' + escapeHtml(err.code || err.message) + '). 보안 규칙을 최신으로 게시했는지 확인해주세요.</div>';
+    });
+
+    document.getElementById('addResBtn').addEventListener('click', addReservation);
+    initWaitlist();
+    setInterval(function(){ renderTableBoard(); }, 30000);
+  }
+
+  function fillResTableSelect(){
+    var sel = document.getElementById('resTable');
+    if (!sel) return;
+    var cur = sel.value;
+    var html = '<option value="">테이블 자동</option>';
+    for (var i = 1; i <= tableTotal(); i++) html += '<option value="' + i + '">' + i + '번 테이블</option>';
+    sel.innerHTML = html;
+    sel.value = cur;
+  }
+
+  function addReservation(){
+    var date = document.getElementById('resDate').value;
+    var time = document.getElementById('resTime').value;
+    var name = document.getElementById('resName').value.trim();
+    var people = parseInt(document.getElementById('resPeople').value, 10) || null;
+    var tableNo = parseInt(document.getElementById('resTable').value, 10) || null;
+    var phone4 = document.getElementById('resPhone').value.replace(/\D/g, '').slice(-4);
+    var memo = document.getElementById('resMemo').value.trim();
+    if (!date || !time){ toast('날짜와 시간을 입력해주세요'); return; }
+    if (!name){ toast('예약자 이름을 입력해주세요'); return; }
+    if (tableNo){
+      var clash = reservations.filter(function(r){
+        return r.status === 'booked' && r.tableNo === tableNo && r.date === date &&
+          Math.abs(resStart(r) - resStart({ date: date, time: time })) < 90 * 60000;
+      })[0];
+      if (clash && !confirm(tableNo + '번 테이블에 ' + clash.time + ' ' + clash.name + ' 예약이 가까이 있어요. 그래도 추가할까요?')) return;
+    }
+    db.collection('reservations').add({
+      date: date, time: time, name: name, people: people, tableNo: tableNo,
+      phone4: phone4, memo: memo, status: 'booked',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function(){
+      ['resTime','resName','resPeople','resPhone','resMemo'].forEach(function(id){ document.getElementById(id).value = ''; });
+      document.getElementById('resTable').value = '';
+      toast('예약을 추가했어요');
+    }).catch(function(err){ toast('추가 실패: ' + (err.code || err.message)); });
+  }
+
+  function seatTable(n, name, resId){
+    var batch = db.batch();
+    batch.set(db.collection('tables').doc(String(n)), {
+      occupied: true, since: firebase.firestore.FieldValue.serverTimestamp(),
+      partyName: name || '', reservationId: resId || ''
+    });
+    if (resId) batch.update(db.collection('reservations').doc(resId), { status: 'arrived', tableNo: n });
+    return batch.commit().catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
+  }
+  function clearTable(n){
+    return db.collection('tables').doc(String(n)).set({ occupied: false, partyName: '', reservationId: '' })
+      .catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
+  }
+  function setResStatus(id, status){
+    return db.collection('reservations').doc(id).update({ status: status })
+      .catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
+  }
+
+  function resLabel(r){
+    return escapeHtml(r.time) + ' <b>' + escapeHtml(r.name) + '</b>' + (r.people ? ' ' + r.people + '명' : '');
+  }
+
+  function renderTableBoard(){
+    var board = document.getElementById('tableBoard');
+    if (!board) return;
+    var now = Date.now(), today = todayKey();
+    var todays = reservations.filter(function(r){ return r.status === 'booked' && r.date === today && r.tableNo; });
+    var html = '';
+    for (var n = 1; n <= tableTotal(); n++){
+      var st = tableState[String(n)] || {};
+      var mine = todays.filter(function(r){ return r.tableNo === n; });
+      // 지금 잡아둬야 하는 예약 (30분 전 ~ 지난 것까지)
+      var due = mine.filter(function(r){ return resStart(r) - now <= HOLD_BEFORE_MIN * 60000; })[0];
+      var next = mine.filter(function(r){ return resStart(r) - now > HOLD_BEFORE_MIN * 60000; })[0];
+      var orderCount = activeOrdersCache.filter(function(o){ return Number(o.tableNo) === n; }).length;
+      var ordersHtml = orderCount ? '<div><span class="tcard-orders">진행 중 주문 ' + orderCount + '건</span></div>' : '';
+      var cls, state, info, actions;
+
+      if (st.occupied){
+        cls = 'tc-busy'; state = '사용 중';
+        info = (st.partyName ? '<b>' + escapeHtml(st.partyName) + '</b><br>' : '') +
+          '<span class="tcard-sub">' + (st.since && st.since.toDate ? fmtTime(st.since) + '부터' : '') + '</span>' +
+          (due ? '<div style="color:#ffb4b4;font-weight:800;margin-top:4px;">⚠ 다음 예약 ' + resLabel(due) + '</div>' : '') + ordersHtml;
+        actions = '<button data-act="clear" data-n="' + n + '">비우기</button>';
+      } else if (due){
+        var late = now - resStart(due) > LATE_AFTER_MIN * 60000;
+        cls = late ? 'tc-late' : 'tc-hold';
+        state = late ? '노쇼?' : '예약석';
+        info = resLabel(due) + (due.memo ? '<div class="tcard-sub">' + escapeHtml(due.memo) + '</div>' : '') + ordersHtml;
+        actions = '<button class="primary" data-act="arrive" data-n="' + n + '" data-res="' + due.id + '">착석</button>' +
+          '<button class="ghost" data-act="noshow" data-res="' + due.id + '">' + (late ? '노쇼 처리' : '취소') + '</button>';
+      } else {
+        cls = 'tc-free'; state = '빈 자리';
+        info = (next ? '<span class="tcard-sub">다음 예약 ' + resLabel(next) + '</span>' : '<span class="tcard-sub">오늘 예약 없음</span>') + ordersHtml;
+        actions = '<button data-act="seat" data-n="' + n + '">착석</button>';
+      }
+      html += '<div class="tcard ' + cls + '"><div class="tcard-head"><span class="tcard-no">' + n + '<small>번</small></span>' +
+        '<span class="tcard-state">' + state + '</span></div>' +
+        '<div class="tcard-info">' + info + '</div><div class="tcard-actions">' + actions + '</div></div>';
+    }
+    var unassigned = reservations.filter(function(r){
+      return r.status === 'booked' && r.date === today && !r.tableNo && resStart(r) - now <= HOLD_BEFORE_MIN * 60000;
+    });
+    var banner = document.getElementById('unassignedBanner');
+    banner.hidden = unassigned.length === 0;
+    banner.innerHTML = unassigned.length ? '⚠ 테이블이 안 정해진 예약이 곧 와요: ' +
+      unassigned.map(function(r){ return resLabel(r); }).join(', ') + ' — 아래 예약 목록에서 테이블을 골라주세요.' : '';
+    board.innerHTML = html;
+    board.querySelectorAll('button[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var n = parseInt(b.dataset.n, 10), resId = b.dataset.res;
+        var act = b.dataset.act;
+        if (act === 'seat') seatTable(n, '', '');
+        else if (act === 'clear'){ if (confirm(n + '번 테이블을 비울까요?')) clearTable(n); }
+        else if (act === 'arrive'){
+          var r = reservations.filter(function(x){ return x.id === resId; })[0];
+          seatTable(n, r ? r.name : '', resId);
+        }
+        else if (act === 'noshow'){ if (confirm('이 예약을 노쇼/취소 처리하고 자리를 풀까요?')) setResStatus(resId, 'noshow'); }
+      });
+    });
+  }
+
+  var RES_STATUS = { booked: '', arrived: '도착', noshow: '노쇼/취소' };
+  function renderResList(){
+    var wrap = document.getElementById('resList');
+    if (!wrap) return;
+    var today = todayKey();
+    var list = reservations.filter(function(r){ return (r.date || '') >= today; });
+    if (list.length === 0){ wrap.innerHTML = '<div class="hint">등록된 예약이 없어요.</div>'; return; }
+    var html = '', lastDate = null;
+    list.forEach(function(r){
+      if (r.date !== lastDate){ html += '<div class="res-date">' + dateLabel(r.date) + '</div>'; lastDate = r.date; }
+      var done = r.status !== 'booked';
+      var opts = '<option value="">테이블 미정</option>';
+      for (var i = 1; i <= tableTotal(); i++) opts += '<option value="' + i + '"' + (r.tableNo === i ? ' selected' : '') + '>' + i + '번</option>';
+      html += '<div class="res-item' + (done ? ' done' : '') + '">' +
+        '<div class="res-time">' + escapeHtml(r.time) + '</div>' +
+        '<div class="res-who"><b>' + escapeHtml(r.name) + '</b>' + (r.people ? ' · ' + r.people + '명' : '') +
+          (RES_STATUS[r.status] ? ' <span class="res-status" style="color:' + (r.status === 'arrived' ? 'var(--success)' : 'var(--pending)') + '">' + RES_STATUS[r.status] + '</span>' : '') +
+          '<div class="tcard-sub">' + [r.phone4 ? '☎ ' + escapeHtml(r.phone4) : '', escapeHtml(r.memo || '')].filter(Boolean).join(' · ') + '</div></div>' +
+        '<select data-res="' + r.id + '"' + (done ? ' disabled' : '') + '>' + opts + '</select>' +
+        '<div class="res-btns">' +
+          (done ? '' : '<button class="b-arrive" data-act="arrive" data-res="' + r.id + '">도착</button><button class="b-noshow" data-act="noshow" data-res="' + r.id + '">노쇼</button>') +
+          '<button class="b-del" data-act="del" data-res="' + r.id + '">삭제</button></div>' +
+        '</div>';
+    });
+    wrap.innerHTML = html;
+    wrap.querySelectorAll('select[data-res]').forEach(function(sel){
+      sel.addEventListener('change', function(){
+        db.collection('reservations').doc(sel.dataset.res).update({ tableNo: parseInt(sel.value, 10) || null })
+          .catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
+      });
+    });
+    wrap.querySelectorAll('button[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id = b.dataset.res;
+        var r = reservations.filter(function(x){ return x.id === id; })[0];
+        if (!r) return;
+        if (b.dataset.act === 'arrive'){
+          if (!r.tableNo){ toast('먼저 앉을 테이블을 골라주세요'); return; }
+          var st = tableState[String(r.tableNo)];
+          if (st && st.occupied && !confirm(r.tableNo + '번 테이블이 아직 사용 중이에요. 그래도 착석 처리할까요?')) return;
+          seatTable(r.tableNo, r.name, r.id);
+        } else if (b.dataset.act === 'noshow'){
+          if (confirm(r.name + ' 예약을 노쇼/취소 처리할까요?')) setResStatus(id, 'noshow');
+        } else if (b.dataset.act === 'del'){
+          if (confirm(r.name + ' 예약을 삭제할까요?')) db.collection('reservations').doc(id).delete().catch(function(err){ toast('삭제 실패: ' + (err.code || err.message)); });
+        }
+      });
+    });
+  }
+
+  // ---------- 웨이팅 ----------
+  var waitlist = [];
+  var firstWaitSnapshot = true;
+
+  function initWaitlist(){
+    db.collection('waitlist').onSnapshot(function(snap){
+      if (!firstWaitSnapshot){
+        snap.docChanges().forEach(function(ch){
+          if (ch.type === 'added' && ch.doc.data().status === 'waiting'){ beep(); toast('새 웨이팅 #' + ch.doc.data().waitNumber); }
+        });
+      }
+      firstWaitSnapshot = false;
+      waitlist = [];
+      snap.forEach(function(doc){ waitlist.push(Object.assign({ id: doc.id }, doc.data())); });
+      waitlist.sort(function(a,b){ return (a.waitNumber||0) - (b.waitNumber||0); });
+      renderWaitlist();
+    }, function(err){
+      console.error(err);
+      document.getElementById('waitList').innerHTML = '<div class="hint">웨이팅을 불러오지 못했어요 (' + escapeHtml(err.code || err.message) + '). 보안 규칙을 최신으로 게시했는지 확인해주세요.</div>';
+    });
+
+    document.getElementById('resetWaitBtn').addEventListener('click', function(){
+      if (!confirm('대기 명단을 모두 지우고 대기번호를 1번부터 다시 시작할까요?')) return;
+      db.collection('waitlist').get().then(function(snap){
+        var batch = db.batch();
+        snap.forEach(function(doc){ batch.delete(doc.ref); });
+        batch.set(db.collection('settings').doc('waitCounter'), { nextWaitNumber: 1 });
+        return batch.commit();
+      }).then(function(){ toast('대기 명단을 초기화했어요'); })
+        .catch(function(err){ toast('초기화 실패: ' + (err.code || err.message)); });
+    });
+    setInterval(renderWaitlist, 30000);
+  }
+
+  // 지금 바로 앉힐 수 있는 테이블 (사용 중 아님 + 곧 올 예약 없음)
+  function freeTableNumbers(){
+    var now = Date.now(), today = todayKey(), out = [];
+    for (var n = 1; n <= tableTotal(); n++){
+      var st = tableState[String(n)] || {};
+      if (st.occupied) continue;
+      var held = reservations.some(function(r){
+        return r.status === 'booked' && r.date === today && r.tableNo === n && resStart(r) - now <= HOLD_BEFORE_MIN * 60000;
+      });
+      var calledHere = waitlist.some(function(w){ return w.status === 'called' && Number(w.tableNo) === n; });
+      if (!held && !calledHere) out.push(n);
+    }
+    return out;
+  }
+
+  function minsAgo(ts){
+    if (!ts || !ts.toDate) return '';
+    var m = Math.max(0, Math.round((Date.now() - ts.toDate().getTime()) / 60000));
+    return m < 1 ? '방금' : m + '분 전';
+  }
+
+  function renderWaitlist(){
+    var wrap = document.getElementById('waitList');
+    if (!wrap) return;
+    // 이 기기에서 테이블을 고르는 중이면 다시 그리지 않아요
+    if (wrap.contains(document.activeElement) && document.activeElement.tagName === 'SELECT') return;
+    var active = waitlist.filter(function(w){ return w.status === 'waiting' || w.status === 'called'; });
+    document.getElementById('waitCount').textContent = active.filter(function(w){ return w.status === 'waiting'; }).length;
+    document.getElementById('calledCount').textContent = active.filter(function(w){ return w.status === 'called'; }).length;
+    if (active.length === 0){
+      var seatedCount = waitlist.filter(function(w){ return w.status === 'seated'; }).length;
+      wrap.innerHTML = '<div class="hint">지금 대기 중인 손님이 없어요.' + (seatedCount ? ' (오늘 웨이팅 입장 ' + seatedCount + '팀)' : '') + '</div>';
+      return;
+    }
+    var free = freeTableNumbers();
+    var suggestion = free.slice();
+    wrap.innerHTML = active.map(function(w){
+      var called = w.status === 'called';
+      var pick = called ? Number(w.tableNo) || '' : (suggestion.length ? suggestion.shift() : '');
+      var opts = '<option value="">테이블 미정</option>';
+      for (var i = 1; i <= tableTotal(); i++){
+        var label = i + '번' + (free.indexOf(i) >= 0 ? ' (빈 자리)' : '');
+        opts += '<option value="' + i + '"' + (pick === i ? ' selected' : '') + '>' + label + '</option>';
+      }
+      var btns = called
+        ? '<button class="w-seat" data-act="seat" data-id="' + w.id + '">입장</button><button class="w-recall" data-act="call" data-id="' + w.id + '">다시 호출</button><button class="w-cancel" data-act="cancel" data-id="' + w.id + '">취소</button>'
+        : '<button class="w-call" data-act="call" data-id="' + w.id + '">호출</button><button class="w-cancel" data-act="cancel" data-id="' + w.id + '">취소</button>';
+      return '<div class="wait-row' + (called ? ' called' : '') + '">' +
+        '<div class="wait-no">' + w.waitNumber + '<small>번</small></div>' +
+        '<div class="wait-who"><b>' + escapeHtml(w.name || '') + '</b> · ' + (w.people || '?') + '명' +
+          '<div class="tcard-sub">' + (called ? '<span style="color:var(--red);font-weight:800">호출 ' + minsAgo(w.calledAt) + '</span>' : '등록 ' + minsAgo(w.createdAt)) + '</div></div>' +
+        '<select data-id="' + w.id + '">' + opts + '</select>' +
+        '<div class="wait-btns">' + btns + '</div></div>';
+    }).join('');
+
+    wrap.querySelectorAll('button[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var w = waitlist.filter(function(x){ return x.id === b.dataset.id; })[0];
+        if (!w) return;
+        var sel = wrap.querySelector('select[data-id="' + w.id + '"]');
+        var tableNo = parseInt(sel && sel.value, 10) || null;
+        var ref = db.collection('waitlist').doc(w.id);
+        var fail = function(err){ toast('저장 실패: ' + (err.code || err.message)); };
+        if (b.dataset.act === 'call'){
+          ref.update({ status: 'called', tableNo: tableNo, calledAt: firebase.firestore.FieldValue.serverTimestamp() })
+            .then(function(){ toast(w.waitNumber + '번 손님을 호출했어요'); }).catch(fail);
+        } else if (b.dataset.act === 'seat'){
+          var batch = db.batch();
+          batch.update(ref, { status: 'seated', tableNo: tableNo, seatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+          if (tableNo){
+            batch.set(db.collection('tables').doc(String(tableNo)), {
+              occupied: true, since: firebase.firestore.FieldValue.serverTimestamp(),
+              partyName: '웨이팅 ' + w.waitNumber + '번 ' + (w.name || ''), reservationId: ''
+            });
+          }
+          batch.commit().then(function(){ toast(w.waitNumber + '번 손님 입장 처리했어요'); }).catch(fail);
+        } else if (b.dataset.act === 'cancel'){
+          if (confirm(w.waitNumber + '번 ' + (w.name || '') + ' 웨이팅을 취소할까요?')) ref.update({ status: 'cancelled' }).catch(fail);
+        }
+      });
+    });
   }
 
   // ---------- 메뉴 관리 ----------
@@ -917,6 +1402,16 @@
       var base = input.value.trim().replace(/[?#].*$/, '');
       if (!base) return;
       var n = Math.max(1, Math.min(60, parseInt(settings.tableCount, 10) || 8));
+      var ent = document.createElement('div');
+      ent.className = 'qr-card entrance';
+      ent.innerHTML = '<div class="qr-store">' + escapeHtml(settings.storeName || '주점') + '</div>' +
+        '<div class="qr-table">웨이팅 등록</div><div class="qr-img"></div><div class="qr-foot">입구에 붙여주세요 · 찍으면 대기번호가 나와요</div>';
+      area.appendChild(ent);
+      try{
+        var eo = { text: base + '?wait=1', width: 160, height: 160, colorDark:'#1f1a17', colorLight:'#ffffff' };
+        if (QRCode.CorrectLevel) eo.correctLevel = QRCode.CorrectLevel.M;
+        new QRCode(ent.querySelector('.qr-img'), eo);
+      }catch(e){ console.error(e); }
       for (var t = 1; t <= n; t++){
         var card = document.createElement('div');
         card.className = 'qr-card';

@@ -6,27 +6,29 @@
 <title>주점 주문</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+JP:wght@700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#15120d;
-    --surface:#211b13;
-    --surface-2:#2b2318;
-    --border:#3c3220;
-    --text:#f5efe3;
-    --text-muted:#b3a890;
-    --accent:#f2a93b;
-    --accent-strong:#ffc665;
-    --cta:#d64545;
-    --cta-strong:#ea5b5b;
-    --success:#4caf6d;
-    --pending:#e0a83e;
-    --danger:#d64545;
-    --radius:16px;
+    --bg:#ffffff;
+    --paper:#faf6ef;
+    --surface:#ffffff;
+    --surface-2:#f6f1e8;
+    --border:#e7dfd2;
+    --ink:#1f1a17;
+    --text:#1f1a17;
+    --text-muted:#857a6c;
+    --red:#c0242b;
+    --red-deep:#9b1b21;
+    --red-soft:#fbeceb;
+    --accent:#c0242b;
+    --success:#2f8a4f;
+    --pending:#b7791f;
+    --info:#2b6cb0;
+    --danger:#c0242b;
+    --radius:14px;
     --radius-sm:10px;
-    color-scheme: dark;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --serif:'Gowun Batang', 'Noto Serif JP', serif;
+    color-scheme: light;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -42,152 +44,233 @@
   [hidden]{display:none!important;}
   button{font-family:inherit;}
 
-  .topbar{
-    position:sticky; top:0; z-index:20;
-    padding: calc(20px + env(safe-area-inset-top,0px)) 20px 16px;
-    background: linear-gradient(180deg, var(--bg) 70%, rgba(21,18,13,0));
-    display:flex; flex-direction:column; gap:4px;
+  /* ---------- 노렌(가게 앞 천막) 헤더 ---------- */
+  .noren{
+    position:relative;
+    background:var(--red);
+    padding: calc(14px + env(safe-area-inset-top,0px)) 20px 0;
+    color:#fff;
   }
+  .noren-inner{ max-width:640px; margin:0 auto; position:relative; }
+  .noren-panels{
+    display:flex; gap:5px; max-width:640px; margin:0 auto; padding:0 20px;
+    height:50px;
+  }
+  .noren-panels span{
+    flex:1; background:var(--red);
+    border-bottom-left-radius:4px; border-bottom-right-radius:4px;
+    display:flex; align-items:flex-start; justify-content:center; padding-top:4px;
+    font-family:'Noto Serif JP', serif; font-weight:900; font-size:22px; color:#fff;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.08);
+  }
+  .noren-top-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding-bottom:12px; }
+  .bar-title{ display:flex; align-items:center; gap:9px; font-family:var(--serif); font-weight:700; font-size:20px; min-width:0; }
+  .bar-title #storeName{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bar-logo{
+    width:30px; height:30px; flex-shrink:0; border-radius:50%; background:#fff; color:var(--red);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:'Noto Serif JP',serif; font-weight:900; font-size:15px;
+  }
+  .bar-btns{ display:flex; gap:6px; flex-shrink:0; }
+  @media (max-width:420px){ .bar-title{ font-size:17px; } .history-btn{ padding:6px 10px; font-size:12px; } }
+  .history-btn{
+    background:#fff; border:1.5px solid #fff; color:var(--red);
+    border-radius: 999px; padding:7px 13px; font-size:12.5px; font-weight:800; cursor:pointer;
+  }
+  .history-btn.ghost{ background:transparent; color:#fff; border-color:rgba(255,255,255,0.55); }
+
+  .shop-head{ max-width:640px; margin:0 auto; padding: 14px 20px 0; text-align:center; }
+  .lantern{
+    width:46px; height:58px; flex-shrink:0; border-radius: 45% 45% 45% 45% / 40% 40% 40% 40%;
+    background: radial-gradient(ellipse at 50% 40%, #e2453f 0%, var(--red) 55%, var(--red-deep) 100%);
+    position:relative; display:flex; align-items:center; justify-content:center;
+    color:#fff; font-family:'Noto Serif JP', serif; font-weight:900; font-size:20px;
+    box-shadow: 0 6px 14px rgba(192,36,43,0.28);
+  }
+  .lantern::before, .lantern::after{
+    content:""; position:absolute; left:50%; transform:translateX(-50%);
+    width:22px; height:6px; background:#2a201a; border-radius:2px;
+  }
+  .lantern::before{ top:-3px; }
+  .lantern::after{ bottom:-3px; }
   .store-name{
-    font-family:'Black Han Sans', sans-serif;
-    font-size: 28px;
-    color: var(--accent);
-    letter-spacing: 0.5px;
+    font-family:var(--serif); font-weight:700;
+    font-size: 27px; color: var(--ink); letter-spacing: -0.3px; line-height:1.15;
   }
   .store-sub{ font-size:13px; color:var(--text-muted); }
-  .history-btn{
-    position:absolute; right:20px; top: calc(20px + env(safe-area-inset-top,0px));
-    background:var(--surface); border:1px solid var(--border); color:var(--text);
-    border-radius: 999px; padding:7px 14px; font-size:12.5px; font-weight:700;
+
+  /* ---------- 웨이팅 ---------- */
+  .wait-card-wrap{ max-width:640px; margin:0 auto; padding:0 20px; }
+  #myWaitCard{
+    margin-top:14px; border-radius:var(--radius); padding:14px 16px; cursor:pointer;
+    border:1.5px solid var(--red); background:var(--red-soft); display:flex; align-items:center; gap:14px;
   }
+  #myWaitCard .wc-num{ font-family:var(--serif); font-weight:700; font-size:34px; color:var(--red); line-height:1; }
+  #myWaitCard .wc-num small{ display:block; font-family:'Noto Sans KR',sans-serif; font-size:11px; font-weight:800; color:var(--text-muted); margin-bottom:3px; }
+  #myWaitCard .wc-text{ flex:1; font-size:14px; font-weight:700; line-height:1.4; }
+  #myWaitCard .wc-text span{ display:block; font-size:12px; font-weight:500; color:var(--text-muted); }
+  #myWaitCard.called{ background:var(--red); border-color:var(--red); color:#fff; animation: pulseCard 1.2s ease-in-out infinite; }
+  #myWaitCard.called .wc-num, #myWaitCard.called .wc-text span, #myWaitCard.called .wc-num small{ color:#fff; }
+  #myWaitCard.done{ background:#e6f4ea; border-color:var(--success); }
+  #myWaitCard.done .wc-num{ color:var(--success); }
+  @keyframes pulseCard{ 0%,100%{ box-shadow:0 0 0 0 rgba(192,36,43,0.45);} 50%{ box-shadow:0 0 0 10px rgba(192,36,43,0);} }
+
+  .wait-big{ text-align:center; padding:6px 0 4px; }
+  .wait-big .wb-label{ font-size:13px; color:var(--text-muted); font-weight:700; }
+  .wait-big .wb-num{ font-family:var(--serif); font-weight:700; font-size:72px; color:var(--red); line-height:1.05; }
+  .wait-big .wb-ahead{ font-size:17px; font-weight:800; margin-top:6px; }
+  .wait-big .wb-ahead b{ color:var(--red); font-size:22px; }
+  .wait-big .wb-desc{ font-size:13px; color:var(--text-muted); margin-top:8px; line-height:1.55; }
+  .wait-call{
+    background:var(--red); color:#fff; border-radius:var(--radius); padding:22px 16px; text-align:center; margin:4px 0 6px;
+    animation: pulseCard 1.2s ease-in-out infinite;
+  }
+  .wait-call .wc-title{ font-family:var(--serif); font-weight:700; font-size:30px; }
+  .wait-call .wc-table{ font-size:18px; font-weight:800; margin-top:6px; }
+  .wait-call .wc-sub{ font-size:12.5px; opacity:0.85; margin-top:8px; }
+  .wait-queue-info{ text-align:center; font-size:14px; color:var(--text-muted); margin:2px 0 4px; }
+  .wait-queue-info b{ color:var(--red); font-size:18px; }
+  .people-row{ display:flex; align-items:center; gap:12px; }
+  .people-row button{
+    width:44px; height:44px; border-radius:999px; border:1.5px solid var(--red); background:#fff; color:var(--red);
+    font-size:22px; font-weight:700; cursor:pointer;
+  }
+  .people-row .pv{ font-size:22px; font-weight:800; min-width:56px; text-align:center; }
 
   main{ padding: 4px 20px 140px; max-width:640px; margin:0 auto; }
 
-  .category-block{ margin-top:22px; }
+  .category-block{ margin-top:26px; }
   .category-title{
-    font-size:13px; font-weight:700; color:var(--accent);
-    letter-spacing: 1px; text-transform:uppercase; margin: 0 0 10px 2px;
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--serif); font-size:17px; font-weight:700; color:var(--ink);
+    margin: 0 0 12px 2px;
   }
+  .category-title::before{
+    content:""; width:10px; height:10px; background:var(--red); transform:rotate(45deg); flex-shrink:0;
+  }
+  .category-title::after{ content:""; flex:1; height:1px; background:var(--border); }
+
   .item-card{
-    display:flex; align-items:center; gap:12px;
+    display:flex; align-items:center; gap:14px;
     background:var(--surface); border:1px solid var(--border);
-    border-radius: var(--radius); padding:14px; margin-bottom:10px;
+    border-radius: var(--radius); padding:12px; margin-bottom:10px;
+    box-shadow: 0 1px 0 rgba(31,26,23,0.03);
   }
-  .item-card.soldout{ opacity:0.5; }
+  .item-card.soldout{ opacity:0.45; }
   .item-thumb{
-    width:84px; height:84px; flex-shrink:0; border-radius:12px; object-fit:cover;
-    background:var(--surface-2); border:1px solid var(--border); cursor:zoom-in;
+    width:92px; height:92px; flex-shrink:0; border-radius:10px; object-fit:cover;
+    background:var(--surface-2); cursor:zoom-in;
   }
   .item-info{ flex:1; min-width:0; }
-  .item-name{ font-weight:700; font-size:15.5px; }
-  .item-desc{ font-size:12.5px; color:var(--text-muted); margin-top:2px; }
-  .item-price{ font-weight:700; color:var(--accent-strong); margin-top:6px; font-size:14px; }
+  .item-name{ font-family:var(--serif); font-weight:700; font-size:17px; line-height:1.3; }
+  .item-desc{ font-size:12.5px; color:var(--text-muted); margin-top:3px; line-height:1.45; }
+  .item-price{ font-weight:800; color:var(--red); margin-top:6px; font-size:15px; }
   .soldout-badge{
-    display:inline-block; background:var(--surface-2); color:var(--text-muted);
-    font-size:11.5px; font-weight:700; padding:3px 8px; border-radius:6px; margin-top:6px;
+    display:inline-block; background:var(--ink); color:#fff;
+    font-size:11px; font-weight:800; padding:3px 8px; border-radius:4px; margin-top:6px; letter-spacing:1px;
   }
-  .stepper{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .stepper{ display:flex; flex-direction:column-reverse; align-items:center; gap:6px; flex-shrink:0; }
   .stepper button{
-    width:32px; height:32px; border-radius:999px; border:1px solid var(--border);
-    background:var(--surface-2); color:var(--text); font-size:18px; line-height:1;
+    width:32px; height:32px; border-radius:999px; border:1.5px solid var(--red);
+    background:#fff; color:var(--red); font-size:18px; line-height:1; font-weight:700;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
   }
+  .stepper .qty-plus{ background:var(--red); color:#fff; }
   .stepper button:active{ transform:scale(0.94); }
-  .stepper .qty{ width:20px; text-align:center; font-weight:700; font-size:15px; }
+  .stepper .qty{ min-width:20px; text-align:center; font-weight:800; font-size:15px; }
 
-  .empty-state{ color:var(--text-muted); text-align:center; padding: 60px 20px; font-size:14px; }
+  .empty-state{ color:var(--text-muted); text-align:center; padding: 60px 20px; font-size:14px; line-height:1.6; }
 
   .cartbar{
     position:fixed; left:0; right:0; bottom:0; z-index:30;
-    padding: 14px 20px calc(14px + env(safe-area-inset-bottom,0px));
-    background: linear-gradient(0deg, var(--bg) 60%, rgba(21,18,13,0));
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom,0px));
+    background: linear-gradient(0deg, #fff 65%, rgba(255,255,255,0));
   }
   .cartbar-inner{
     max-width:640px; margin:0 auto;
     display:flex; align-items:center; justify-content:space-between; gap:14px;
-    background:var(--surface); border:1px solid var(--border);
-    border-radius: var(--radius); padding: 12px 12px 12px 18px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    background:var(--ink); color:#fff;
+    border-radius: 16px; padding: 10px 10px 10px 18px;
+    box-shadow: 0 10px 28px rgba(31,26,23,0.25);
   }
   .cartbar-info{ font-size:14px; }
-  .cartbar-info b{ color:var(--accent-strong); font-size:16px; }
+  .cartbar-info b{ color:#fff; font-size:16px; }
   .btn-cta{
-    background: var(--cta); color:#fff; border:none; border-radius: 12px;
-    padding: 13px 22px; font-size:15px; font-weight:700; cursor:pointer;
+    background: var(--red); color:#fff; border:none; border-radius: 12px;
+    padding: 13px 22px; font-size:15px; font-weight:800; cursor:pointer;
   }
-  .btn-cta:active{ background: var(--cta-strong); }
-  .btn-cta:disabled{ opacity:0.4; }
+  .btn-cta:active{ background: var(--red-deep); }
 
   .sheet-backdrop{
-    position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.55);
+    position:fixed; inset:0; z-index:50; background:rgba(31,26,23,0.45);
     display:flex; align-items:flex-end; justify-content:center;
   }
   .sheet{
-    width:100%; max-width:640px; max-height:88vh; overflow-y:auto;
-    background:var(--bg); border-radius: 20px 20px 0 0;
+    width:100%; max-width:640px; max-height:90vh; overflow-y:auto;
+    background:#fff; border-radius: 20px 20px 0 0;
     padding: 22px 20px calc(24px + env(safe-area-inset-bottom,0px));
-    border-top:1px solid var(--border);
+    border-top:4px solid var(--red);
   }
   .sheet-handle{ width:36px; height:4px; border-radius:2px; background:var(--border); margin: 0 auto 16px; }
-  .sheet h2{ font-size:19px; margin:0 0 14px; font-family:'Black Han Sans',sans-serif; letter-spacing:0.3px; }
+  .sheet h2{ font-size:21px; margin:0 0 14px; font-family:var(--serif); font-weight:700; }
   .sheet-close{
     position:absolute; right:18px; top:18px; background:none; border:none; color:var(--text-muted);
     font-size:22px; cursor:pointer; line-height:1;
   }
 
-  .order-line{ display:flex; justify-content:space-between; padding:7px 0; font-size:14px; border-bottom:1px dashed var(--border); }
+  .order-line{ display:flex; justify-content:space-between; padding:8px 0; font-size:14.5px; border-bottom:1px dashed var(--border); }
   .order-line:last-child{ border-bottom:none; }
-  .order-line .name{ color:var(--text); }
   .order-line .sub{ color:var(--text-muted); }
   .order-total-row{ display:flex; justify-content:space-between; padding:14px 0 6px; font-size:16px; font-weight:800; }
-  .order-total-row b{ color:var(--accent-strong); font-size:19px; }
+  .order-total-row b{ color:var(--red); font-size:20px; }
 
-  label.field-label{ display:block; font-size:13px; font-weight:700; color:var(--text-muted); margin: 18px 0 6px; }
+  label.field-label, .field-label{ display:block; font-size:13px; font-weight:800; color:var(--ink); margin: 18px 0 8px; }
+  .field-label .req{ color:var(--red); }
+  .field-label .opt{ color:var(--text-muted); font-weight:500; }
   input.field-input{
-    width:100%; background:var(--surface); border:1px solid var(--border); color:var(--text);
-    border-radius: var(--radius-sm); padding: 12px 14px; font-size:15px; font-family:inherit;
+    width:100%; background:#fff; border:1.5px solid var(--border); color:var(--text);
+    border-radius: var(--radius-sm); padding: 12px 14px; font-size:16px; font-family:inherit;
   }
-  input.field-input:focus{ outline:none; border-color:var(--accent); }
+  input.field-input:focus{ outline:none; border-color:var(--red); }
+
+  .table-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(56px,1fr)); gap:8px; }
+  .table-chip{
+    height:48px; border-radius:10px; border:1.5px solid var(--border); background:#fff;
+    font-size:17px; font-weight:800; color:var(--ink); cursor:pointer;
+  }
+  .table-chip.active{ background:var(--red); border-color:var(--red); color:#fff; }
+  .table-fixed{
+    display:flex; align-items:center; justify-content:space-between;
+    border:1.5px solid var(--red); background:var(--red-soft); border-radius:var(--radius-sm); padding:10px 14px;
+  }
+  .table-fixed b{ font-family:var(--serif); font-size:22px; color:var(--red); }
+  .table-fixed button{ background:none; border:none; color:var(--text-muted); font-size:13px; font-weight:700; text-decoration:underline; cursor:pointer; }
 
   .pay-card{
-    margin-top:14px; background:var(--surface); border:1px solid var(--border);
-    border-radius: var(--radius); padding: 16px;
+    margin-top:18px; background:var(--paper); border:1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
   }
   .pay-row{ display:flex; justify-content:space-between; align-items:center; padding: 7px 0; font-size:14px; }
   .pay-row .k{ color:var(--text-muted); }
-  .pay-row .v{ font-weight:700; }
+  .pay-row .v{ font-weight:800; }
   .copy-btn{
-    background:var(--surface-2); border:1px solid var(--border); color:var(--accent-strong);
-    border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700; cursor:pointer; margin-left:8px;
+    background:#fff; border:1px solid var(--red); color:var(--red);
+    border-radius:8px; padding:5px 10px; font-size:12px; font-weight:800; cursor:pointer; margin-left:8px;
   }
-  .pay-amount{ font-size:22px; font-weight:800; color:var(--accent-strong); }
-
-  .confirm-check{
-    margin-top:16px; display:flex; align-items:flex-start; gap:10px;
-    background:var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-sm);
-    padding:13px; font-size:13px; color:var(--text); cursor:pointer;
-  }
-  .confirm-check input{ margin-top:2px; width:18px; height:18px; flex-shrink:0; accent-color:var(--accent); }
-
+  .pay-amount{ font-size:22px; font-weight:900; color:var(--red); }
   .pay-note{
-    margin-top:12px; font-size:12.5px; line-height:1.55; color:var(--text-muted);
-    background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:11px 13px;
+    margin-top:12px; font-size:12.5px; line-height:1.6; color:var(--text-muted);
   }
-  .pay-note b{ color:var(--text); }
-
-  #imgLightbox{
-    position:fixed; inset:0; z-index:90; background:rgba(0,0,0,0.88);
-    display:flex; align-items:center; justify-content:center; padding:20px; cursor:zoom-out;
-  }
-  #imgLightbox img{ max-width:100%; max-height:100%; border-radius:12px; }
+  .pay-note b{ color:var(--ink); }
 
   .btn-submit{
-    width:100%; margin-top:18px; background:var(--cta); color:#fff; border:none;
-    border-radius: var(--radius-sm); padding:15px; font-size:16px; font-weight:800; cursor:pointer;
+    width:100%; margin-top:18px; background:var(--red); color:#fff; border:none;
+    border-radius: 12px; padding:16px; font-size:16.5px; font-weight:800; cursor:pointer;
   }
-  .btn-submit:disabled{ opacity:0.35; }
+  .btn-submit:disabled{ opacity:0.3; }
+  .submit-hint{ text-align:center; font-size:12px; color:var(--text-muted); margin-top:8px; min-height:16px; }
   .btn-secondary{
-    width:100%; margin-top:10px; background:transparent; color:var(--text-muted); border:1px solid var(--border);
+    width:100%; margin-top:10px; background:#fff; color:var(--ink); border:1.5px solid var(--border);
     border-radius: var(--radius-sm); padding:13px; font-size:14px; font-weight:700; cursor:pointer;
   }
 
@@ -196,36 +279,54 @@
     font-size:13px; font-weight:800;
   }
   .status-badge::before{ content:""; width:7px; height:7px; border-radius:50%; background:currentColor; }
-  .st-awaiting_payment{ background: rgba(224,168,62,0.15); color:var(--pending); }
-  .st-paid{ background: rgba(79,150,220,0.15); color:#5fb3ee; }
-  .st-completed{ background: rgba(76,175,109,0.15); color:var(--success); }
-  .st-cancelled{ background: rgba(214,69,69,0.15); color:var(--danger); }
+  .st-awaiting_payment{ background: #fdf3e1; color:var(--pending); }
+  .st-paid{ background: #e8f0fa; color:var(--info); }
+  .st-completed{ background: #e6f4ea; color:var(--success); }
+  .st-cancelled{ background: var(--red-soft); color:var(--danger); }
 
-  .order-number-big{ font-family:'Black Han Sans',sans-serif; font-size:40px; color:var(--accent); line-height:1; margin:6px 0 10px; }
-  .status-desc{ font-size:13.5px; color:var(--text-muted); margin-top:8px; line-height:1.5; }
+  .status-table{ font-family:var(--serif); font-size:15px; color:var(--text-muted); }
+  .order-number-big{ font-family:var(--serif); font-weight:700; font-size:44px; color:var(--red); line-height:1; margin:4px 0 12px; }
+  .status-desc{ font-size:13.5px; color:var(--text-muted); margin-top:10px; line-height:1.55; }
 
   .history-item{
-    background:var(--surface); border:1px solid var(--border); border-radius: var(--radius-sm);
+    background:#fff; border:1px solid var(--border); border-radius: var(--radius-sm);
     padding:12px 14px; margin-bottom:8px; cursor:pointer;
   }
-  .history-item-head{ display:flex; justify-content:space-between; align-items:center; font-size:13.5px; }
+  .history-item-head{ display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:700; }
   .history-item-sub{ font-size:12px; color:var(--text-muted); margin-top:4px; }
 
   .toast{
     position:fixed; left:50%; bottom:30px; transform:translateX(-50%);
-    background:#2b2318; color:var(--text); border:1px solid var(--border);
-    padding:11px 18px; border-radius:999px; font-size:13.5px; z-index:80;
+    background:var(--ink); color:#fff;
+    padding:11px 18px; border-radius:999px; font-size:13.5px; z-index:80; max-width:90vw; text-align:center;
     opacity:0; transition: opacity 0.25s; pointer-events:none;
   }
   .toast.show{ opacity:1; }
+
+  #imgLightbox{
+    position:fixed; inset:0; z-index:90; background:rgba(20,16,14,0.9);
+    display:flex; align-items:center; justify-content:center; padding:20px; cursor:zoom-out;
+  }
+  #imgLightbox img{ max-width:100%; max-height:100%; border-radius:12px; }
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <div class="store-name" id="storeName">주점</div>
-  <div class="store-sub" id="storeSub">메뉴를 고르고, 주문과 동시에 계좌이체로 결제하세요</div>
-  <button class="history-btn" id="historyBtn">내 주문내역</button>
+<header>
+  <div class="noren">
+    <div class="noren-inner noren-top-row">
+      <div class="bar-title"><span class="bar-logo">酒</span><span id="storeName">주점</span></div>
+      <div class="bar-btns">
+        <button class="history-btn" id="waitBtn">웨이팅</button>
+        <button class="history-btn ghost" id="historyBtn">주문내역</button>
+      </div>
+    </div>
+  </div>
+  <div class="noren-panels" aria-hidden="true"><span>居</span><span>酒</span><span>屋</span></div>
+  <div class="shop-head">
+    <div class="store-sub" id="storeSub">메뉴를 고르고 계좌이체로 주문해 주세요</div>
+  </div>
+  <div class="wait-card-wrap"><div id="myWaitCard" hidden></div></div>
 </header>
 
 <main>
@@ -250,11 +351,14 @@
     <div id="orderLines"></div>
     <div class="order-total-row"><span>합계</span><b id="orderTotal">0원</b></div>
 
-    <label class="field-label" for="depositorInput">입금자명 (실제 계좌이체 하실 성함)</label>
-    <input class="field-input" id="depositorInput" placeholder="예: 박시후" autocomplete="off">
+    <div class="field-label">테이블 번호 <span class="req">*</span></div>
+    <div id="tablePicker"></div>
 
-    <label class="field-label" for="noteInput">테이블 번호 / 닉네임 (선택)</label>
-    <input class="field-input" id="noteInput" placeholder="예: 3번 테이블 또는 홍길동" autocomplete="off">
+    <label class="field-label" for="depositorInput">입금자명 <span class="req">*</span> <span class="opt">· 실제 이체하실 이름</span></label>
+    <input class="field-input" id="depositorInput" placeholder="예: 박시후" autocomplete="off" maxlength="30">
+
+    <label class="field-label" for="noteInput">요청사항 <span class="opt">(선택)</span></label>
+    <input class="field-input" id="noteInput" placeholder="예: 앞접시 2개 더 주세요" autocomplete="off" maxlength="60">
 
     <div class="pay-card">
       <div class="pay-row"><span class="k">은행</span><span class="v" id="payBank">-</span></div>
@@ -264,11 +368,12 @@
     </div>
 
     <div class="pay-note">
-      위 계좌로 <b>입금액 그대로</b> 이체한 뒤 <b>주문 확정하기</b>를 눌러주세요.<br>
-      스태프가 <b>입금자명</b>으로 입금을 확인하면 조리를 시작해요.
+      위 계좌로 <b>입금액 그대로</b> 이체한 뒤<br><b>주문 확정하기</b>를 눌러주세요.
+      스태프가 <b>입금자명</b>으로 확인하면 조리를 시작해요.
     </div>
 
     <button class="btn-submit" id="submitOrderBtn" disabled>주문 확정하기</button>
+    <div class="submit-hint" id="submitHint"></div>
   </div>
 </div>
 
@@ -278,6 +383,7 @@
     <button class="sheet-close" id="statusSheetClose">✕</button>
     <div class="sheet-handle"></div>
     <div style="text-align:center;">
+      <div class="status-table" id="statusTable"></div>
       <div style="font-size:13px;color:var(--text-muted);">주문번호</div>
       <div class="order-number-big" id="statusOrderNumber">#0</div>
       <span class="status-badge" id="statusBadge">확인중</span>
@@ -286,6 +392,35 @@
     <div id="statusLines" style="margin-top:18px;"></div>
     <div class="order-total-row"><span>합계</span><b id="statusTotal">0원</b></div>
     <button class="btn-secondary" id="statusOrderMoreBtn">메뉴 더 보기 / 추가 주문</button>
+  </div>
+</div>
+
+<!-- 웨이팅 시트 -->
+<div class="sheet-backdrop" id="waitSheetBackdrop" hidden>
+  <div class="sheet" style="position:relative;">
+    <button class="sheet-close" id="waitSheetClose">✕</button>
+    <div class="sheet-handle"></div>
+
+    <div id="waitRegisterView">
+      <h2>웨이팅 등록</h2>
+      <div class="wait-queue-info" id="waitQueueInfo">현재 대기 <b>0</b>팀</div>
+      <label class="field-label" for="waitNameInput">이름 <span class="req">*</span> <span class="opt">· 부를 때 쓸 이름</span></label>
+      <input class="field-input" id="waitNameInput" placeholder="예: 박시후" autocomplete="off" maxlength="20">
+      <div class="field-label">인원 <span class="req">*</span></div>
+      <div class="people-row">
+        <button type="button" id="peopleMinus">−</button>
+        <span class="pv"><span id="peopleVal">2</span>명</span>
+        <button type="button" id="peoplePlus">+</button>
+      </div>
+      <button class="btn-submit" id="waitSubmitBtn" disabled>웨이팅 등록하기</button>
+      <div class="submit-hint">등록하면 대기번호가 나오고, 입장할 차례가 되면 이 화면에 알려드려요.<br>화면을 닫아도 다시 들어오면 그대로 보여요.</div>
+    </div>
+
+    <div id="waitStatusView" hidden>
+      <div id="waitStatusBody"></div>
+      <button class="btn-secondary" id="waitCancelBtn">웨이팅 취소하기</button>
+      <button class="btn-secondary" id="waitDoneBtn" hidden>확인</button>
+    </div>
   </div>
 </div>
 
@@ -329,7 +464,23 @@
   }
 
   var menuItems = {};        // id -> {name, price, category, soldOut, order}
-  var settings = { storeName:'주점', bankName:'', accountNumber:'', accountHolder:'' };
+  var settings = { storeName:'주점', bankName:'', accountNumber:'', accountHolder:'', tableCount: 8 };
+
+  // ---------- 테이블 번호 ----------
+  // 테이블별 QR(주소 끝에 ?table=3)로 들어오면 자동으로 그 테이블이 선택돼요.
+  var TABLE_KEY = 'pub_table_v1';
+  var tableFromUrl = (function(){
+    try{
+      var q = new URLSearchParams(location.search);
+      var n = parseInt(q.get('table') || q.get('t'), 10);
+      return (n > 0 && n < 100) ? n : null;
+    }catch(e){ return null; }
+  })();
+  var selectedTable = tableFromUrl;
+  if (!selectedTable){
+    try{ var saved = parseInt(localStorage.getItem(TABLE_KEY), 10); if (saved > 0 && saved < 100) selectedTable = saved; }catch(e){}
+  }
+  var tableLocked = !!tableFromUrl;
   var cart = {};              // id -> qty
   var CART_KEY = 'pub_cart_v1';
   var HISTORY_KEY = 'pub_my_orders_v1';
@@ -358,7 +509,6 @@
   // 손님 페이지는 로그인(익명 인증) 없이 동작해요.
   // 예전엔 손님마다 익명 로그인을 했는데, 같은 와이파이/통신망에서 여러 명이 동시에 들어오면
   // Firebase가 "같은 IP에서 계정 생성이 너무 많다"며 막아서 주문이 안 되는 문제가 있었어요.
-  if (db) startListeners();
 
   function startListeners(){
     db.collection('settings').doc('main').onSnapshot(function(snap){
@@ -381,6 +531,7 @@
     });
 
     renderHistory();
+    startWaitListeners();
   }
 
   // ---------- 메뉴 렌더링 ----------
@@ -502,6 +653,7 @@
     document.getElementById('payAmount').textContent = won(s.total);
     document.getElementById('depositorInput').value = '';
     document.getElementById('noteInput').value = '';
+    renderTablePicker();
     document.getElementById('submitOrderBtn').disabled = true;
     orderSheetBackdrop.hidden = false;
   }
@@ -512,9 +664,44 @@
   function openLightbox(src){ imgLightboxImg.src = src; imgLightbox.hidden = false; }
   imgLightbox.addEventListener('click', function(){ imgLightbox.hidden = true; imgLightboxImg.src = ''; });
 
+  function tableCount(){
+    var n = parseInt(settings.tableCount, 10);
+    if (!(n > 0)) n = 8;
+    if (selectedTable && selectedTable > n) n = selectedTable;
+    return Math.min(n, 60);
+  }
+
+  function renderTablePicker(){
+    var wrap = document.getElementById('tablePicker');
+    if (tableLocked && selectedTable){
+      wrap.innerHTML = '<div class="table-fixed"><b>' + selectedTable + '번 테이블</b><button type="button" id="changeTableBtn">변경</button></div>';
+      document.getElementById('changeTableBtn').addEventListener('click', function(){ tableLocked = false; renderTablePicker(); });
+      refreshSubmitEnabled();
+      return;
+    }
+    var html = '<div class="table-grid">';
+    for (var i = 1; i <= tableCount(); i++){
+      html += '<button type="button" class="table-chip' + (selectedTable === i ? ' active' : '') + '" data-t="' + i + '">' + i + '</button>';
+    }
+    wrap.innerHTML = html + '</div>';
+    wrap.querySelectorAll('.table-chip').forEach(function(b){
+      b.addEventListener('click', function(){
+        selectedTable = parseInt(b.dataset.t, 10);
+        try{ localStorage.setItem(TABLE_KEY, String(selectedTable)); }catch(e){}
+        wrap.querySelectorAll('.table-chip').forEach(function(x){ x.classList.toggle('active', x === b); });
+        refreshSubmitEnabled();
+      });
+    });
+    refreshSubmitEnabled();
+  }
+
   function refreshSubmitEnabled(){
     var depositor = document.getElementById('depositorInput').value.trim();
-    document.getElementById('submitOrderBtn').disabled = !depositor;
+    var hint = '';
+    if (!selectedTable) hint = '테이블 번호를 골라주세요';
+    else if (!depositor) hint = '입금자명을 입력해주세요';
+    document.getElementById('submitOrderBtn').disabled = !!hint;
+    document.getElementById('submitHint').textContent = hint;
   }
   document.getElementById('depositorInput').addEventListener('input', refreshSubmitEnabled);
 
@@ -570,7 +757,9 @@
     if (s.count === 0) return;
     var depositor = document.getElementById('depositorInput').value.trim();
     var note = document.getElementById('noteInput').value.trim();
+    if (!selectedTable){ toast('테이블 번호를 골라주세요'); return; }
     if (!depositor){ toast('입금자명을 입력해주세요'); return; }
+    var tableNo = selectedTable;
 
     submitting = true;
     var btn = document.getElementById('submitOrderBtn');
@@ -580,6 +769,7 @@
     issueOrderNumber().then(function(orderNumber){
       var orderData = {
         orderNumber: orderNumber,
+        tableNo: tableNo,
         items: s.lines.map(function(l){ return { name: l.name, price: l.price, qty: l.qty, subtotal: l.subtotal }; }),
         totalAmount: s.total,
         depositorName: depositor.slice(0, 30),
@@ -588,14 +778,14 @@
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
       return db.collection('orders').add(orderData).then(function(ref){
-        return { id: ref.id, orderNumber: orderNumber, total: s.total, lines: s.lines };
+        return { id: ref.id, orderNumber: orderNumber, tableNo: tableNo, total: s.total, lines: s.lines };
       });
     }).then(function(result){
       cart = {};
       saveCart();
       renderMenu();
       updateCartBar();
-      pushHistory({ id: result.id, orderNumber: result.orderNumber, total: result.total, ts: Date.now() });
+      pushHistory({ id: result.id, orderNumber: result.orderNumber, tableNo: result.tableNo, total: result.total, ts: Date.now() });
       orderSheetBackdrop.hidden = true;
       openStatusSheet(result.id);
       renderHistory();
@@ -608,6 +798,204 @@
       refreshSubmitEnabled();
     });
   }
+
+  // ---------- 웨이팅 ----------
+  var WAIT_KEY = 'pub_my_wait_v1';
+  var myWait = null;          // { id, waitNumber }
+  var myWaitData = null;      // 실시간 문서 내용
+  var myWaitUnsub = null;
+  var waitingQueue = [];      // 대기중(status=waiting) 목록
+  var lastWaitStatus = null;
+  var waitPeople = 2;
+
+  try{ myWait = JSON.parse(localStorage.getItem(WAIT_KEY) || 'null'); }catch(e){ myWait = null; }
+
+  var waitSheetBackdrop = document.getElementById('waitSheetBackdrop');
+  function openWaitSheet(){ renderWaitSheet(); waitSheetBackdrop.hidden = false; }
+  function closeWaitSheet(){ waitSheetBackdrop.hidden = true; }
+  document.getElementById('waitBtn').addEventListener('click', openWaitSheet);
+  document.getElementById('myWaitCard').addEventListener('click', openWaitSheet);
+  document.getElementById('waitSheetClose').addEventListener('click', closeWaitSheet);
+  waitSheetBackdrop.addEventListener('click', function(e){ if (e.target === waitSheetBackdrop) closeWaitSheet(); });
+
+  function setPeople(n){
+    waitPeople = Math.max(1, Math.min(20, n));
+    document.getElementById('peopleVal').textContent = waitPeople;
+  }
+  document.getElementById('peopleMinus').addEventListener('click', function(){ setPeople(waitPeople - 1); });
+  document.getElementById('peoplePlus').addEventListener('click', function(){ setPeople(waitPeople + 1); });
+  document.getElementById('waitNameInput').addEventListener('input', function(){
+    document.getElementById('waitSubmitBtn').disabled = !this.value.trim();
+  });
+
+  function startWaitListeners(){
+    db.collection('waitlist').where('status', '==', 'waiting').onSnapshot(function(snap){
+      waitingQueue = [];
+      snap.forEach(function(doc){ waitingQueue.push(Object.assign({ id: doc.id }, doc.data())); });
+      renderWaitCard(); renderWaitSheet();
+    }, function(err){ console.error(err); });
+    if (myWait && myWait.id) watchMyWait();
+  }
+
+  function watchMyWait(){
+    if (myWaitUnsub) myWaitUnsub();
+    myWaitUnsub = db.collection('waitlist').doc(myWait.id).onSnapshot(function(snap){
+      if (!snap.exists){ clearMyWait(); return; }
+      myWaitData = snap.data();
+      if (myWaitData.status === 'called' && lastWaitStatus !== null && lastWaitStatus !== 'called') alertCalled();
+      if ((myWaitData.status === 'called' || myWaitData.status === 'seated') && myWaitData.tableNo){
+        selectedTable = Number(myWaitData.tableNo); tableLocked = true;
+        try{ localStorage.setItem(TABLE_KEY, String(selectedTable)); }catch(e){}
+      }
+      lastWaitStatus = myWaitData.status;
+      renderWaitCard(); renderWaitSheet();
+    }, function(err){ console.error(err); });
+  }
+
+  function clearMyWait(){
+    if (myWaitUnsub){ myWaitUnsub(); myWaitUnsub = null; }
+    myWait = null; myWaitData = null; lastWaitStatus = null;
+    try{ localStorage.removeItem(WAIT_KEY); }catch(e){}
+    renderWaitCard(); renderWaitSheet();
+  }
+
+  function aheadCount(){
+    if (!myWaitData) return 0;
+    return waitingQueue.filter(function(w){ return w.waitNumber < myWaitData.waitNumber; }).length;
+  }
+
+  // 입장 차례 알림: 진동 + 소리 + 화면
+  var waitAudio = null;
+  function alertCalled(){
+    try{ if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 600]); }catch(e){}
+    try{
+      waitAudio = waitAudio || new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.45, 0.9].forEach(function(t){
+        var o = waitAudio.createOscillator(), g = waitAudio.createGain();
+        o.type = 'sine'; o.frequency.value = 988;
+        g.gain.setValueAtTime(0.0001, waitAudio.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.35, waitAudio.currentTime + t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, waitAudio.currentTime + t + 0.35);
+        o.connect(g); g.connect(waitAudio.destination);
+        o.start(waitAudio.currentTime + t); o.stop(waitAudio.currentTime + t + 0.36);
+      });
+    }catch(e){}
+    openWaitSheet();
+  }
+
+  function renderWaitCard(){
+    var card = document.getElementById('myWaitCard');
+    if (!myWait || !myWaitData || myWaitData.status === 'cancelled'){
+      card.hidden = !(myWaitData && myWaitData.status === 'cancelled');
+      if (myWaitData && myWaitData.status === 'cancelled'){
+        card.className = '';
+        card.innerHTML = '<div class="wc-num"><small>대기번호</small>' + myWaitData.waitNumber + '</div><div class="wc-text">웨이팅이 취소됐어요<span>탭해서 닫기</span></div>';
+      }
+      return;
+    }
+    var st = myWaitData.status;
+    card.hidden = false;
+    card.className = st === 'called' ? 'called' : (st === 'seated' ? 'done' : '');
+    var text;
+    if (st === 'waiting'){
+      var a = aheadCount();
+      text = (a === 0 ? '곧 입장 차례예요!' : '내 앞에 ' + a + '팀') + '<span>입장할 차례가 되면 알려드려요 · 탭해서 자세히</span>';
+    } else if (st === 'called'){
+      text = '입장 가능! ' + (myWaitData.tableNo ? myWaitData.tableNo + '번 테이블로' : '입구로') + ' 오세요<span>스태프에게 대기번호를 보여주세요</span>';
+    } else {
+      text = '입장 완료' + (myWaitData.tableNo ? ' · ' + myWaitData.tableNo + '번 테이블' : '') + '<span>메뉴를 골라 주문해 주세요 · 탭해서 닫기</span>';
+    }
+    card.innerHTML = '<div class="wc-num"><small>대기번호</small>' + myWaitData.waitNumber + '</div><div class="wc-text">' + text + '</div>';
+  }
+
+  function renderWaitSheet(){
+    var reg = document.getElementById('waitRegisterView');
+    var stv = document.getElementById('waitStatusView');
+    var active = myWait && myWaitData;
+    reg.hidden = !!active;
+    stv.hidden = !active;
+    document.getElementById('waitQueueInfo').innerHTML = '현재 대기 <b>' + waitingQueue.length + '</b>팀';
+    if (!active) return;
+    var st = myWaitData.status, body = '';
+    var cancelBtn = document.getElementById('waitCancelBtn');
+    var doneBtn = document.getElementById('waitDoneBtn');
+    cancelBtn.hidden = !(st === 'waiting' || st === 'called');
+    doneBtn.hidden = !(st === 'seated' || st === 'cancelled');
+    if (st === 'called'){
+      body = '<div class="wait-call"><div class="wc-title">입장 가능해요!</div>' +
+        '<div class="wc-table">' + (myWaitData.tableNo ? myWaitData.tableNo + '번 테이블로 오세요' : '입구로 와주세요') + '</div>' +
+        '<div class="wc-sub">대기번호 ' + myWaitData.waitNumber + '번 · 스태프에게 이 화면을 보여주세요</div></div>';
+    } else if (st === 'waiting'){
+      var a = aheadCount();
+      body = '<div class="wait-big"><div class="wb-label">나의 대기번호</div><div class="wb-num">' + myWaitData.waitNumber + '</div>' +
+        '<div class="wb-ahead">' + (a === 0 ? '<b>다음 차례</b>예요!' : '내 앞에 <b>' + a + '</b>팀') + '</div>' +
+        '<div class="wb-desc">' + escapeHtml(myWaitData.name) + ' · ' + myWaitData.people + '명<br>입장 차례가 되면 이 화면이 빨갛게 바뀌고 진동이 울려요.<br>근처에서 기다려 주세요.</div></div>';
+    } else if (st === 'seated'){
+      body = '<div class="wait-big"><div class="wb-label">입장 완료</div><div class="wb-num" style="color:var(--success)">' +
+        (myWaitData.tableNo ? myWaitData.tableNo + '<span style="font-size:28px">번</span>' : '✓') + '</div>' +
+        '<div class="wb-desc">메뉴를 골라 주문해 주세요. 테이블 번호는 자동으로 선택돼요.</div></div>';
+    } else {
+      body = '<div class="wait-big"><div class="wb-label">대기번호 ' + myWaitData.waitNumber + '</div><div class="wb-ahead">웨이팅이 취소됐어요</div>' +
+        '<div class="wb-desc">다시 기다리시려면 새로 등록해 주세요.</div></div>';
+    }
+    document.getElementById('waitStatusBody').innerHTML = body;
+  }
+
+  document.getElementById('waitDoneBtn').addEventListener('click', function(){ clearMyWait(); closeWaitSheet(); });
+  document.getElementById('waitCancelBtn').addEventListener('click', function(){
+    if (!myWait || !confirm('웨이팅을 취소할까요?')) return;
+    db.collection('waitlist').doc(myWait.id).update({ status: 'cancelled' })
+      .then(function(){ clearMyWait(); closeWaitSheet(); toast('웨이팅을 취소했어요'); })
+      .catch(function(err){ toast(errorMessage(err)); });
+  });
+
+  function issueWaitNumber(){
+    var ref = db.collection('settings').doc('waitCounter');
+    var attempt = 0;
+    function run(){
+      attempt++;
+      return db.runTransaction(function(t){
+        return t.get(ref).then(function(snap){
+          var next = (snap.exists && snap.data().nextWaitNumber) ? snap.data().nextWaitNumber : 1;
+          t.set(ref, { nextWaitNumber: next + 1 }, { merge: true });
+          return next;
+        });
+      }).catch(function(err){
+        if (attempt < 8 && RETRYABLE[err.code]) return sleep(200 * attempt + Math.random() * 400).then(run);
+        throw err;
+      });
+    }
+    return run();
+  }
+
+  var waitSubmitting = false;
+  document.getElementById('waitSubmitBtn').addEventListener('click', function(){
+    var name = document.getElementById('waitNameInput').value.trim();
+    if (!name || waitSubmitting || !db) return;
+    // 소리 알림을 위해 사용자가 누른 순간 오디오를 미리 깨워둬요
+    try{ waitAudio = waitAudio || new (window.AudioContext || window.webkitAudioContext)(); waitAudio.resume(); }catch(e){}
+    waitSubmitting = true;
+    var btn = this; btn.disabled = true; btn.textContent = '등록 중…';
+    issueWaitNumber().then(function(num){
+      return db.collection('waitlist').add({
+        waitNumber: num, name: name.slice(0, 20), people: waitPeople, status: 'waiting',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(function(ref){ return { id: ref.id, waitNumber: num }; });
+    }).then(function(w){
+      myWait = w; lastWaitStatus = 'waiting';
+      try{ localStorage.setItem(WAIT_KEY, JSON.stringify(w)); }catch(e){}
+      watchMyWait();
+      document.getElementById('waitNameInput').value = '';
+    }).catch(function(err){
+      console.error(err); toast(errorMessage(err).replace('주문', '웨이팅'));
+    }).finally(function(){
+      waitSubmitting = false; btn.textContent = '웨이팅 등록하기';
+      btn.disabled = !document.getElementById('waitNameInput').value.trim();
+    });
+  });
+
+  // 입구용 QR (주소 끝 ?wait=1)로 들어오면 웨이팅 화면을 바로 열어요
+  try{ if (new URLSearchParams(location.search).get('wait')) setTimeout(openWaitSheet, 300); }catch(e){}
 
   // ---------- 상태 시트 ----------
   var statusSheetBackdrop = document.getElementById('statusSheetBackdrop');
@@ -635,7 +1023,7 @@
   var STATUS_DESC = {
     awaiting_payment: '스태프가 계좌 입금 내역을 확인하고 있어요. 잠시만 기다려주세요.',
     paid: '입금이 확인됐어요! 맛있게 준비하고 있어요.',
-    completed: '주문하신 메뉴가 준비됐어요. 픽업대에서 받아가세요 🙌',
+    completed: '주문하신 메뉴가 준비됐어요! 🙌',
     cancelled: '이 주문은 취소되었어요. 문의사항은 스태프에게 말씀해주세요.'
   };
 
@@ -651,6 +1039,7 @@
 
   function renderStatus(order){
     document.getElementById('statusOrderNumber').textContent = '#' + order.orderNumber;
+    document.getElementById('statusTable').textContent = order.tableNo ? order.tableNo + '번 테이블' : '';
     var badge = document.getElementById('statusBadge');
     var status = order.status || 'awaiting_payment';
     badge.className = 'status-badge st-' + status;
@@ -686,7 +1075,7 @@
       var row = document.createElement('div');
       row.className = 'history-item';
       row.innerHTML = '<div class="history-item-head"><span>#' + entry.orderNumber + '</span><span class="status-badge" id="hstatus-' + entry.id + '">…</span></div>' +
-        '<div class="history-item-sub">' + won(entry.total) + '</div>';
+        '<div class="history-item-sub">' + (entry.tableNo ? entry.tableNo + '번 테이블 · ' : '') + won(entry.total) + '</div>';
       row.addEventListener('click', function(){
         historySheetBackdrop.hidden = true;
         openStatusSheet(entry.id);
@@ -703,6 +1092,9 @@
     list.innerHTML = '';
     list.appendChild(frag);
   }
+
+  // 모든 준비가 끝난 뒤 실시간 연결 시작
+  if (db) startListeners();
 
 })();
 </script>
