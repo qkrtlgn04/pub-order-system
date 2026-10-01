@@ -541,15 +541,29 @@
       }
     }, function(err){ console.error(err); });
 
+    // 연결이 느리면 Firestore가 "서버 응답 전 빈 목록"을 먼저 줘요(fromCache).
+    // 그걸 "메뉴 없음"으로 그리면 안 되니, 서버에서 받은 적이 있을 때만 메뉴를 그려요.
+    var menuLoaded = false;
+    var slowTimer = setTimeout(function(){
+      if (menuLoaded) return;
+      document.getElementById('menuList').innerHTML =
+        '<div class="empty-state">메뉴를 불러오는 중이에요… 인터넷이 느린 것 같아요.<br>' +
+        '<button class="btn-secondary" style="margin-top:12px" onclick="location.reload()">새로고침</button></div>';
+    }, 8000);
     db.collection('menu').onSnapshot(function(snap){
+      if (snap.empty && snap.metadata.fromCache && !menuLoaded) return;
+      menuLoaded = true;
+      clearTimeout(slowTimer);
       menuItems = {};
       snap.forEach(function(doc){ menuItems[doc.id] = Object.assign({id:doc.id}, doc.data()); });
       renderMenu();
       updateCartBar();
     }, function(err){
       console.error(err);
+      clearTimeout(slowTimer);
       document.getElementById('menuList').innerHTML =
-        '<div class="empty-state">메뉴를 불러오지 못했어요 (' + escapeHtml(err.code || '') + ').<br>잠시 후 새로고침 해주세요.</div>';
+        '<div class="empty-state">메뉴를 불러오지 못했어요 (' + escapeHtml(err.code || '') + ').<br>잠시 후 새로고침 해주세요.<br>' +
+        '<button class="btn-secondary" style="margin-top:12px" onclick="location.reload()">새로고침</button></div>';
     });
 
     renderHistory();
@@ -565,8 +579,17 @@
       wrap.innerHTML = '<div class="empty-state">아직 등록된 메뉴가 없어요.<br>주방 화면에서 메뉴를 등록해주세요.</div>';
       return;
     }
-    // 정리: cart 에 없는 품절/삭제 항목 제거
-    Object.keys(cart).forEach(function(id){ if (!menuItems[id]) delete cart[id]; });
+    // 정리: 장바구니에서 품절/삭제된 메뉴 빼기 (담아둔 뒤 품절된 메뉴가 주문되지 않게)
+    var removedSoldOut = [];
+    Object.keys(cart).forEach(function(id){
+      if (!menuItems[id]){ delete cart[id]; return; }
+      if (menuItems[id].soldOut){ removedSoldOut.push(menuItems[id].name || ''); delete cart[id]; }
+    });
+    if (removedSoldOut.length){
+      saveCart();
+      if (orderSheetBackdrop) orderSheetBackdrop.hidden = true; // 열려 있던 주문서 금액이 틀려지니 닫기
+      toast(removedSoldOut.join(', ') + ' 품절 — 장바구니에서 뺐어요');
+    }
 
     var categories = [];
     var byCat = {};

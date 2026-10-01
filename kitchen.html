@@ -570,25 +570,8 @@
       return counterRef.get();
     }).then(function(snap){
       if (!snap.exists) return counterRef.set({ nextOrderNumber: 1 });
-    }).then(function(){
-      return db.collection('menu').limit(1).get();
-    }).then(function(qs){
-      if (qs.empty){
-        var batch = db.batch();
-        var sample = [
-          { name:'생맥주 500cc', price:4000, category:'주류', order:1 },
-          { name:'소주', price:5000, category:'주류', order:2 },
-          { name:'감자튀김', price:6000, category:'안주', order:3 },
-          { name:'닭강정', price:12000, category:'안주', order:4 },
-          { name:'제로콜라', price:2000, category:'음료', order:5 }
-        ];
-        sample.forEach(function(it){
-          var ref = db.collection('menu').doc();
-          batch.set(ref, Object.assign({ soldOut:false }, it));
-        });
-        return batch.commit();
-      }
     });
+    // 예시 메뉴 자동 생성은 뺐어요 — 메뉴를 전부 지운 뒤 새로고침하면 예시 메뉴가 손님 화면에 뜨는 문제가 있었어요.
   }
 
   // ---------- PIN 게이트 ----------
