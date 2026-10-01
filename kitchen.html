@@ -163,9 +163,12 @@
   .panel h3::before{ content:""; width:8px; height:8px; background:var(--red); transform:rotate(45deg); }
 
   /* ---------- 메뉴 관리 ---------- */
-  .menu-row{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.8fr 2fr auto auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .menu-row{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.7fr 0.8fr 2fr auto auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
   .menu-row:last-child{ border-bottom:none; }
-  .menu-head{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.8fr 2fr auto auto; gap:8px; font-size:12px; color:var(--text-muted); font-weight:700; padding:0 0 4px; }
+  .menu-head{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.7fr 0.8fr 2fr auto auto; gap:8px; font-size:12px; color:var(--text-muted); font-weight:700; padding:0 0 4px; }
+  .menu-row .f-warn, .menu-row .f-notice{ grid-column: 1 / -1; }
+  .add-form #newItemWarn, .add-form #newItemNotice{ grid-column: 1 / -1; }
+  .menu-row select, .add-form select{ width:100%; padding:9px 8px; border:1px solid var(--border); border-radius:8px; font-size:13px; font-family:inherit; background:#faf7f2; }
   .menu-row input, .add-form input{
     background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px;
     padding:9px 10px; font-size:13.5px; width:100%; min-width:0;
@@ -176,7 +179,7 @@
   .toggle-soldout.on{ background:var(--ink); color:#fff; }
   .btn-add{ background:var(--red); color:#fff; }
   .btn-delete{ background:#fff; color:var(--danger); border:1px solid var(--border) !important; }
-  .add-form{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.8fr 2fr auto; gap:8px; margin-top:16px; padding-top:16px; border-top:2px solid var(--border); }
+  .add-form{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.7fr 0.8fr 2fr auto; gap:8px; margin-top:16px; padding-top:16px; border-top:2px solid var(--border); }
   @media (max-width:760px){
     .menu-head{ display:none; }
     .menu-row{ grid-template-columns: 1fr 1fr; }
@@ -446,16 +449,19 @@
   <section id="tab-menu" class="kb-tab">
     <div class="panel">
       <h3>메뉴 목록</h3>
-      <div class="menu-head"><span>메뉴 이름</span><span>가격</span><span>분류</span><span>메뉴 설명 (손님 화면에 표시)</span><span></span><span></span></div>
+      <div class="menu-head"><span>메뉴 이름</span><span>가격</span><span>구분</span><span>분류</span><span>메뉴 설명 (손님 화면에 표시)</span><span></span><span></span></div>
       <div id="menuManageList"><div class="hint">불러오는 중…</div></div>
       <div class="add-form">
         <input id="newItemName" placeholder="메뉴 이름 (예: 모츠나베)">
         <input id="newItemPrice" placeholder="가격 (숫자만)" inputmode="numeric">
+        <select id="newItemGroup"><option value="단품">단품메뉴</option><option value="세트">세트메뉴</option></select>
         <input id="newItemCategory" placeholder="분류 (예: 안주)">
         <input id="newItemDesc" placeholder="메뉴 설명 (예: 곱창 전골, 2~3인분)" maxlength="80">
+        <input id="newItemWarn" maxlength="80" placeholder="⚠️ 담을 때 뜨는 경고 팝업 (선택)">
+        <input id="newItemNotice" maxlength="80" placeholder="⚠️ 담겨 있는 동안 보이는 안내 문구 (선택)">
         <button class="btn-add" id="addItemBtn">추가</button>
       </div>
-      <div class="hint">입력하면 자동 저장돼요. 가격은 숫자만 (예: 5000), 분류를 비워두면 "기타"로 등록돼요. 메뉴 사진은 "설정" 탭에서 올릴 수 있어요.</div>
+      <div class="hint">입력하면 자동 저장돼요. 가격은 숫자만 (예: 5000), 구분은 단품메뉴/세트메뉴 중에서 고르고, 분류(예: 주류·안주)는 그 안의 소제목이에요. 분류를 비워두면 "기타"로 등록돼요. 메뉴 사진은 "설정" 탭에서 올릴 수 있어요.</div>
     </div>
   </section>
 
@@ -1232,11 +1238,13 @@
       var category = document.getElementById('newItemCategory').value.trim() || '기타';
       var desc = document.getElementById('newItemDesc').value.trim();
       if (!name){ toast('메뉴 이름을 입력해주세요'); return; }
-      db.collection('menu').add({ name: name, price: price, category: category, desc: desc, soldOut:false, order: Date.now() }).then(function(){
+      db.collection('menu').add({ name: name, price: price, category: category, group: document.getElementById('newItemGroup').value, desc: desc, addWarning: document.getElementById('newItemWarn').value.trim(), cartNotice: document.getElementById('newItemNotice').value.trim(), soldOut:false, order: Date.now() }).then(function(){
         document.getElementById('newItemName').value = '';
         document.getElementById('newItemDesc').value = '';
         document.getElementById('newItemPrice').value = '';
         document.getElementById('newItemCategory').value = '';
+        document.getElementById('newItemWarn').value = '';
+        document.getElementById('newItemNotice').value = '';
         toast('메뉴를 추가했어요');
       }).catch(function(err){ toast('추가 실패: ' + err.message); });
     });
@@ -1259,8 +1267,11 @@
       return '<div class="menu-row" data-id="' + it.id + '">' +
         '<input class="f-name" value="' + escapeHtml(it.name||'') + '">' +
         '<input class="f-price" inputmode="numeric" value="' + (it.price||0) + '">' +
+        '<select class="f-group"><option value="단품"' + (it.group === '세트' ? '' : ' selected') + '>단품메뉴</option><option value="세트"' + (it.group === '세트' ? ' selected' : '') + '>세트메뉴</option></select>' +
         '<input class="f-category" value="' + escapeHtml(it.category||'') + '">' +
         '<input class="f-desc" maxlength="80" placeholder="메뉴 설명 (선택)" value="' + escapeHtml(it.desc||'') + '">' +
+        '<input class="f-warn" maxlength="80" placeholder="⚠️ 담을 때 뜨는 경고 팝업 (선택, 예: 2분이서 오신 손님만 주문 가능해요)" value="' + escapeHtml(it.addWarning||'') + '">' +
+        '<input class="f-notice" maxlength="80" placeholder="⚠️ 담겨 있는 동안 메뉴·주문서에 보이는 안내 (선택, 예: 3인 이상은 타 메뉴를 추가하여 주문하셔야해요)" value="' + escapeHtml(it.cartNotice||'') + '">' +
         '<button class="toggle-soldout ' + (it.soldOut ? 'on' : '') + '">' + (it.soldOut ? '품절중' : '판매중') + '</button>' +
         '<button class="btn-delete">삭제</button>' +
         '</div>';
@@ -1280,14 +1291,22 @@
       }
       row.querySelector('.f-name').addEventListener('input', function(e){ saveField('name', e.target.value.trim()); });
       row.querySelector('.f-price').addEventListener('input', function(e){ saveField('price', e.target.value.trim()); });
+      row.querySelector('.f-group').addEventListener('change', function(e){ saveField('group', e.target.value); });
       row.querySelector('.f-category').addEventListener('input', function(e){ saveField('category', e.target.value.trim() || '기타'); });
+      row.querySelector('.f-warn').addEventListener('input', function(e){ saveField('addWarning', e.target.value.trim()); });
+      row.querySelector('.f-notice').addEventListener('input', function(e){ saveField('cartNotice', e.target.value.trim()); });
       row.querySelector('.f-desc').addEventListener('input', function(e){ saveField('desc', e.target.value.trim()); });
       row.querySelector('.toggle-soldout').addEventListener('click', function(e){
         var willBeSoldOut = !e.target.classList.contains('on');
         db.collection('menu').doc(id).update({ soldOut: willBeSoldOut }).catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
       });
       row.querySelector('.btn-delete').addEventListener('click', function(){
-        if (confirm('이 메뉴를 삭제할까요?')) db.collection('menu').doc(id).delete().catch(function(err){ toast('삭제 실패: ' + (err.code || err.message)); });
+        if (confirm('이 메뉴를 삭제할까요?')){
+          var delBatch = db.batch();
+          delBatch.delete(db.collection('menu').doc(id));
+          delBatch.delete(db.collection('settings').doc('img_' + id));
+          delBatch.commit().catch(function(err){ toast('삭제 실패: ' + (err.code || err.message)); });
+        }
       });
     });
   }
@@ -1300,15 +1319,20 @@
     var grid = document.getElementById('photoGrid');
     if (!grid) return;
     if (menuRows.length === 0){ grid.innerHTML = '<div class="hint">먼저 "메뉴 관리" 탭에서 메뉴를 등록해주세요.</div>'; return; }
-    grid.innerHTML = menuRows.map(function(it){
-      var box = it.image
-        ? '<div class="photo-box has-image" data-id="' + it.id + '"><img src="' + it.image + '" alt=""></div>'
+    var legacy = menuRows.filter(function(it){ return it.image && !it.thumb; });
+    var legacyBar = legacy.length
+      ? '<div class="hint" style="grid-column:1/-1;background:#fff6e5;padding:10px;border-radius:8px;">옛 방식으로 저장된 사진 ' + legacy.length + '장이 있어요. 손님 화면이 느려질 수 있으니 한 번 눌러서 가볍게 바꿔주세요. <button id="migratePhotosBtn" style="margin-left:6px;padding:6px 10px;border:none;border-radius:8px;background:var(--red);color:#fff;font-weight:800;cursor:pointer;">사진 최적화</button></div>'
+      : '';
+    grid.innerHTML = legacyBar + menuRows.map(function(it){
+      var pic = it.thumb || it.image;
+      var box = pic
+        ? '<div class="photo-box has-image" data-id="' + it.id + '"><img src="' + pic + '" alt=""></div>'
         : '<div class="photo-box" data-id="' + it.id + '">탭해서<br>사진 올리기</div>';
       return '<div class="photo-card">' + box +
         '<div class="photo-name">' + escapeHtml(it.name || '') + '</div>' +
         '<div class="photo-actions">' +
-          '<button class="btn-up" data-id="' + it.id + '">' + (it.image ? '사진 변경' : '사진 올리기') + '</button>' +
-          (it.image ? '<button class="btn-rm" data-id="' + it.id + '">삭제</button>' : '') +
+          '<button class="btn-up" data-id="' + it.id + '">' + (pic ? '사진 변경' : '사진 올리기') + '</button>' +
+          (pic ? '<button class="btn-rm" data-id="' + it.id + '">삭제</button>' : '') +
         '</div>' +
         '<div class="photo-status" id="pst-' + it.id + '">' + escapeHtml(photoBusy[it.id] || '') + '</div>' +
         '</div>';
@@ -1319,12 +1343,42 @@
     grid.querySelectorAll('.btn-rm').forEach(function(b){
       b.addEventListener('click', function(){
         if (!confirm('이 메뉴 사진을 삭제할까요?')) return;
-        db.collection('menu').doc(b.dataset.id).update({ image: firebase.firestore.FieldValue.delete() })
+        var rmBatch = db.batch();
+        rmBatch.update(db.collection('menu').doc(b.dataset.id), { image: firebase.firestore.FieldValue.delete(), thumb: firebase.firestore.FieldValue.delete() });
+        rmBatch.delete(db.collection('settings').doc('img_' + b.dataset.id));
+        rmBatch.commit()
           .then(function(){ toast('사진을 삭제했어요'); })
           .catch(function(err){ toast('삭제 실패: ' + (err.code || err.message)); });
       });
     });
   }
+
+  function dataUrlToFile(dataUrl){
+    var arr = dataUrl.split(','), mime = (arr[0].match(/:(.*?);/) || [])[1] || 'image/jpeg';
+    var bin = atob(arr[1]), n = bin.length, u8 = new Uint8Array(n);
+    while (n--) u8[n] = bin.charCodeAt(n);
+    return new Blob([u8], { type: mime });
+  }
+  // 옛 방식(메뉴 문서 안에 큰 사진)으로 저장된 사진을 작은 썸네일 + 별도 문서로 분리
+  document.addEventListener('click', function(e){
+    if (!e.target || e.target.id !== 'migratePhotosBtn') return;
+    var btn = e.target;
+    var todo = menuRows.filter(function(it){ return it.image && !it.thumb; });
+    btn.disabled = true;
+    var done = 0;
+    todo.reduce(function(chain, it){
+      return chain.then(function(){
+        btn.textContent = '변환 중… ' + done + '/' + todo.length;
+        return compressImageFile(dataUrlToFile(it.image), 240, 0.7).then(function(thumb){
+          var b = db.batch();
+          b.set(db.collection('settings').doc('img_' + it.id), { menuId: it.id, image: it.image });
+          b.update(db.collection('menu').doc(it.id), { thumb: thumb, image: firebase.firestore.FieldValue.delete() });
+          return b.commit();
+        }).then(function(){ done++; });
+      });
+    }, Promise.resolve()).then(function(){ toast('사진 ' + done + '장을 최적화했어요'); })
+      .catch(function(err){ toast('최적화 실패: ' + (err.code || err.message)); btn.disabled = false; });
+  });
 
   function setPhotoStatus(id, msg){
     if (msg) photoBusy[id] = msg; else delete photoBusy[id];
@@ -1343,9 +1397,12 @@
     var id = photoTargetId;
     if (!file || !id) return;
     setPhotoStatus(id, '사진 줄이는 중…');
-    compressUntilSmall(file).then(function(dataUrl){
+    Promise.all([compressUntilSmall(file), compressImageFile(file, 240, 0.7)]).then(function(r){
       setPhotoStatus(id, '저장 중…');
-      return db.collection('menu').doc(id).update({ image: dataUrl });
+      var b = db.batch();
+      b.set(db.collection('settings').doc('img_' + id), { menuId: id, image: r[0] });
+      b.update(db.collection('menu').doc(id), { thumb: r[1], image: firebase.firestore.FieldValue.delete() });
+      return b.commit();
     }).then(function(){
       setPhotoStatus(id, '');
       toast('사진을 저장했어요');
