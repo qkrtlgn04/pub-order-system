@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // ============================================================
-// Firestore 보안 규칙 (v3 — 테이블 번호 추가)
+// Firestore 보안 규칙 (v4 — 테이블 번호 + 테이블·예약)
 // Firebase 콘솔 → Firestore Database → 규칙(Rules) 탭에
 // 이 내용을 "전부" 덮어써서 붙여넣고 "게시(Publish)" 하세요.
 //
@@ -32,6 +32,17 @@ service cloud.firestore {
 
       // 상태 변경 / 전체 초기화는 주방 화면만
       allow update, delete: if request.auth != null;
+    }
+
+    // 테이블 사용 현황: 누구나 읽기, 주방 화면만 수정
+    match /tables/{tableId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // 예약(예약자 이름 등): 주방 화면만 읽기/쓰기
+    match /reservations/{resId} {
+      allow read, write: if request.auth != null;
     }
 
     // 설정(상점명/계좌/PIN): 누구나 읽기, 주방 화면만 수정
