@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // ============================================================
-// Firestore 보안 규칙 (v2 — 2026-10 수정본)
+// Firestore 보안 규칙 (v3 — 테이블 번호 추가)
 // Firebase 콘솔 → Firestore Database → 규칙(Rules) 탭에
 // 이 내용을 "전부" 덮어써서 붙여넣고 "게시(Publish)" 하세요.
 //
@@ -49,7 +49,8 @@ service cloud.firestore {
     }
 
     function isValidNewOrder(d) {
-      return d.keys().hasOnly(['orderNumber', 'items', 'totalAmount', 'depositorName', 'note', 'status', 'createdAt'])
+      return d.keys().hasOnly(['orderNumber', 'tableNo', 'items', 'totalAmount', 'depositorName', 'note', 'status', 'createdAt'])
+        && (!('tableNo' in d) || (d.tableNo is int && d.tableNo > 0 && d.tableNo < 100))
         && d.status == 'awaiting_payment'
         && d.orderNumber is int && d.orderNumber > 0
         && d.items is list && d.items.size() > 0 && d.items.size() <= 30

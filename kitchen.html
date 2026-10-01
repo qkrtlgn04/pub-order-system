@@ -6,28 +6,29 @@
 <title>주방 화면</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+JP:wght@700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#15120d;
-    --surface:#211b13;
-    --surface-2:#2b2318;
-    --border:#3c3220;
-    --text:#f5efe3;
-    --text-muted:#b3a890;
-    --accent:#f2a93b;
-    --accent-strong:#ffc665;
-    --cta:#d64545;
-    --cta-strong:#ea5b5b;
-    --success:#4caf6d;
-    --pending:#e0a83e;
-    --info:#5fb3ee;
-    --danger:#d64545;
-    --radius:16px;
+    --bg:#f7f3ec;
+    --paper:#faf6ef;
+    --surface:#ffffff;
+    --surface-2:#f4efe6;
+    --border:#e3dacb;
+    --text:#1f1a17;
+    --ink:#1f1a17;
+    --text-muted:#7f7466;
+    --red:#c0242b;
+    --red-deep:#9b1b21;
+    --red-soft:#fbeceb;
+    --accent:#c0242b;
+    --success:#2f8a4f;
+    --pending:#b7791f;
+    --info:#2b6cb0;
+    --danger:#c0242b;
+    --radius:14px;
     --radius-sm:10px;
-    color-scheme: dark;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --serif:'Gowun Batang','Noto Serif JP',serif;
+    color-scheme: light;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -42,20 +43,23 @@
   /* ---------- PIN 게이트 ---------- */
   #pinGate{
     min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px;
+    background: var(--red);
   }
   .pin-card{
-    width:100%; max-width:340px; background:var(--surface); border:1px solid var(--border);
-    border-radius: var(--radius); padding:28px 24px; text-align:center;
+    width:100%; max-width:340px; background:#fff;
+    border-radius: var(--radius); padding:30px 24px; text-align:center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
   }
-  .pin-card h1{ font-family:'Black Han Sans',sans-serif; color:var(--accent); font-size:24px; margin:0 0 6px; }
+  .pin-card .pin-kanji{ font-family:'Noto Serif JP',serif; font-weight:900; color:var(--red); font-size:30px; letter-spacing:6px; }
+  .pin-card h1{ font-family:var(--serif); color:var(--ink); font-size:24px; margin:4px 0 6px; }
   .pin-card p{ color:var(--text-muted); font-size:13.5px; margin:0 0 18px; }
   #pinInput{
     width:100%; text-align:center; letter-spacing:10px; font-size:22px; padding:13px;
-    background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:var(--radius-sm);
+    background:#fff; border:1.5px solid var(--border); color:var(--text); border-radius:var(--radius-sm);
   }
-  #pinInput:focus{ outline:none; border-color:var(--accent); }
+  #pinInput:focus{ outline:none; border-color:var(--red); }
   #pinSubmit{
-    width:100%; margin-top:14px; background:var(--cta); color:#fff; border:none; border-radius:var(--radius-sm);
+    width:100%; margin-top:14px; background:var(--red); color:#fff; border:none; border-radius:var(--radius-sm);
     padding:13px; font-size:15px; font-weight:800; cursor:pointer;
   }
   .pin-hint{ margin-top:14px !important; font-size:11.5px !important; color:var(--text-muted); }
@@ -65,146 +69,182 @@
   #dashboard{ min-height:100dvh; display:flex; flex-direction:column; }
   .kb-topbar{
     display:flex; align-items:center; gap:18px; flex-wrap:wrap;
-    padding: calc(16px + env(safe-area-inset-top,0px)) 22px 14px;
-    border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--bg); z-index:10;
+    padding: calc(14px + env(safe-area-inset-top,0px)) 22px 14px;
+    position:sticky; top:0; background:var(--red); color:#fff; z-index:10;
+    box-shadow: 0 2px 0 var(--red-deep);
   }
-  .kb-title{ font-family:'Black Han Sans',sans-serif; color:var(--accent); font-size:20px; margin-right:auto; }
+  .kb-title{ font-family:var(--serif); font-weight:700; color:#fff; font-size:21px; margin-right:auto; display:flex; align-items:center; gap:10px; }
+  .kb-title::before{
+    content:"酒"; font-family:'Noto Serif JP',serif; font-weight:900; font-size:15px;
+    width:30px; height:30px; border-radius:50%; background:#fff; color:var(--red);
+    display:inline-flex; align-items:center; justify-content:center;
+  }
   .kb-tabs{ display:flex; gap:6px; flex-wrap:wrap; }
   .kb-tabs button{
-    background:var(--surface); border:1px solid var(--border); color:var(--text-muted);
+    background:transparent; border:1.5px solid rgba(255,255,255,0.5); color:#fff;
     border-radius:999px; padding:8px 16px; font-size:13.5px; font-weight:700; cursor:pointer;
   }
-  .kb-tabs button.active{ background:var(--accent); color:#1c1508; border-color:var(--accent); }
-  .kb-clock{ font-size:12.5px; color:var(--text-muted); }
+  .kb-tabs button.active{ background:#fff; color:var(--red); border-color:#fff; }
+  .kb-clock{ font-size:13px; color:rgba(255,255,255,0.85); font-weight:700; }
 
-  .kb-tab{ display:none; padding: 18px 22px 60px; max-width:1100px; width:100%; margin:0 auto; }
+  .kb-tab{ display:none; padding: 20px 22px 60px; max-width:1200px; width:100%; margin:0 auto; }
   .kb-tab.active{ display:block; }
 
   /* ---------- 주문 현황 ---------- */
   .orders-toolbar{
-    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; font-size:13.5px; color:var(--text-muted);
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; font-size:14px; color:var(--text-muted);
   }
+  .orders-toolbar b{ color:var(--red); font-size:18px; }
   .orders-toolbar label{ display:flex; align-items:center; gap:6px; cursor:pointer; }
-  .orders-toolbar input[type=checkbox]{ accent-color:var(--accent); width:15px; height:15px; }
+  .orders-toolbar input[type=checkbox]{ accent-color:var(--red); width:15px; height:15px; }
   .orders-grid{
-    display:grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap:12px;
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:14px;
   }
   .order-card{
     background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
-    padding:14px; display:flex; flex-direction:column; gap:8px; border-left:4px solid var(--pending);
+    padding:14px 16px 16px; display:flex; flex-direction:column; gap:10px;
+    border-top:6px solid var(--pending);
+    box-shadow: 0 2px 6px rgba(31,26,23,0.05);
   }
-  .order-card.status-paid{ border-left-color: var(--info); }
-  .order-card.status-completed{ border-left-color: var(--success); opacity:0.75; }
-  .order-card.status-cancelled{ border-left-color: var(--danger); opacity:0.6; }
+  .order-card.status-paid{ border-top-color: var(--info); }
+  .order-card.status-completed{ border-top-color: var(--success); opacity:0.7; }
+  .order-card.status-cancelled{ border-top-color: var(--danger); opacity:0.55; }
   .order-card.flash{ animation: flashCard 1.4s ease; }
-  @keyframes flashCard{ 0%{ box-shadow:0 0 0 3px var(--accent-strong);} 100%{ box-shadow:0 0 0 0 transparent; } }
+  @keyframes flashCard{ 0%{ box-shadow:0 0 0 4px var(--red);} 100%{ box-shadow:0 0 0 0 transparent; } }
 
-  .order-card-head{ display:flex; align-items:center; justify-content:space-between; }
-  .order-num{ font-family:'Black Han Sans',sans-serif; font-size:20px; color:var(--accent); }
+  .order-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .order-table{ display:flex; align-items:baseline; gap:2px; line-height:1; color:var(--red); }
+  .order-table .tn{ font-family:var(--serif); font-weight:700; font-size:54px; letter-spacing:-1px; }
+  .order-table .tl{ font-size:18px; font-weight:800; }
+  .order-table.none .tn{ font-size:22px; color:var(--text-muted); }
+  .order-meta{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .order-num{ font-size:13px; font-weight:800; color:var(--ink); }
   .order-time{ font-size:12px; color:var(--text-muted); }
   .badge{ display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:800; }
   .badge::before{ content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
-  .badge-pending{ background:rgba(224,168,62,0.15); color:var(--pending); }
-  .badge-paid{ background:rgba(95,179,238,0.15); color:var(--info); }
-  .badge-completed{ background:rgba(76,175,109,0.15); color:var(--success); }
-  .badge-cancelled{ background:rgba(214,69,69,0.15); color:var(--danger); }
+  .badge-pending{ background:#fdf3e1; color:var(--pending); }
+  .badge-paid{ background:#e8f0fa; color:var(--info); }
+  .badge-completed{ background:#e6f4ea; color:var(--success); }
+  .badge-cancelled{ background:var(--red-soft); color:var(--danger); }
 
-  .order-items{ list-style:none; margin:0; padding:0; font-size:13.5px; }
-  .order-items li{ display:flex; justify-content:space-between; padding:2px 0; }
-  .order-items li span:last-child{ color:var(--text-muted); }
+  .order-items{ list-style:none; margin:0; padding:10px 0 0; font-size:15.5px; border-top:1px solid var(--border); }
+  .order-items li{ display:flex; justify-content:space-between; padding:3px 0; font-weight:700; }
+  .order-items li span:last-child{ color:var(--red); font-weight:800; }
+  .order-note-box{ background:var(--paper); border-left:3px solid var(--red); padding:7px 10px; font-size:13px; border-radius:4px; }
 
   .order-foot{ display:flex; justify-content:space-between; align-items:flex-end; border-top:1px dashed var(--border); padding-top:8px; }
-  .order-amount{ font-weight:800; color:var(--accent-strong); font-size:15px; }
-  .order-depositor{ font-size:12px; color:var(--text-muted); text-align:right; }
-  .order-note{ color:var(--text-muted); }
+  .order-amount{ font-weight:800; color:var(--ink); font-size:15px; }
+  .order-depositor{ font-size:13px; color:var(--text-muted); text-align:right; }
+  .order-depositor b{ color:var(--ink); }
 
   .order-proof-row{ display:flex; align-items:center; }
   .proof-thumb{ height:44px; border-radius:8px; border:1px solid var(--border); cursor:pointer; }
-  .proof-missing{ font-size:11.5px; color:var(--text-muted); }
 
   #imgLightbox{
-    position:fixed; inset:0; z-index:90; background:rgba(0,0,0,0.85);
+    position:fixed; inset:0; z-index:90; background:rgba(20,16,14,0.88);
     display:flex; align-items:center; justify-content:center; padding:24px; cursor:zoom-out;
   }
   #imgLightbox img{ max-width:100%; max-height:100%; border-radius:10px; }
 
   .order-actions{ display:flex; gap:8px; margin-top:2px; }
-  .order-actions button{ flex:1; border:none; border-radius:var(--radius-sm); padding:10px; font-size:13px; font-weight:800; cursor:pointer; }
-  .btn-confirm{ background:var(--info); color:#0d2438; }
-  .btn-ready{ background:var(--success); color:#0d2b17; }
-  .btn-cancel{ background:var(--surface-2); color:var(--danger); border:1px solid var(--border) !important; }
+  .order-actions button{ flex:1; border:none; border-radius:var(--radius-sm); padding:12px; font-size:14px; font-weight:800; cursor:pointer; }
+  .btn-confirm{ background:var(--info); color:#fff; }
+  .btn-ready{ background:var(--success); color:#fff; }
+  .btn-cancel{ flex:0 0 auto !important; padding:12px 14px !important; background:#fff; color:var(--danger); border:1px solid var(--border) !important; }
 
-  .completed-wrap{ margin-top:22px; color:var(--text-muted); }
-  .completed-wrap summary{ cursor:pointer; font-size:13.5px; font-weight:700; margin-bottom:12px; }
-  .orders-grid.muted .order-card{ opacity:0.65; }
+  .completed-wrap{ margin-top:26px; color:var(--text-muted); }
+  .completed-wrap summary{ cursor:pointer; font-size:14px; font-weight:700; margin-bottom:12px; }
+  .orders-grid.muted .order-card{ opacity:0.7; }
+
+  /* ---------- 공통 패널 ---------- */
+  .panel{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+  .panel + .panel{ margin-top:16px; }
+  .panel h3{ margin:0 0 14px; font-size:17px; font-family:var(--serif); font-weight:700; display:flex; align-items:center; gap:8px; }
+  .panel h3::before{ content:""; width:8px; height:8px; background:var(--red); transform:rotate(45deg); }
 
   /* ---------- 메뉴 관리 ---------- */
-  .panel{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
-  .panel + .panel{ margin-top:16px; }
-  .panel h3{ margin:0 0 14px; font-size:15px; }
-  .form-row{ display:grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap:8px; margin-bottom:10px; align-items:center; }
-  .form-row input{
-    background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px;
-    padding:9px 10px; font-size:13.5px; width:100%;
-  }
-  .form-row input:focus{ outline:none; border-color:var(--accent); }
-  .form-row button{ border:none; border-radius:8px; padding:9px 12px; font-size:12.5px; font-weight:800; cursor:pointer; white-space:nowrap; }
-  .menu-row{ display:grid; grid-template-columns: 1.4fr 1fr 1fr auto auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .menu-row{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.8fr 2fr auto auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
   .menu-row:last-child{ border-bottom:none; }
-  .toggle-soldout{ background:var(--surface-2); border:1px solid var(--border); color:var(--text-muted); }
-  .toggle-soldout.on{ background:rgba(214,69,69,0.18); color:var(--danger); border-color:var(--danger); }
-  .btn-add{ background:var(--accent); color:#1c1508; }
-  .btn-delete{ background:var(--surface-2); color:var(--danger); border:1px solid var(--border); }
-  .add-form{ display:grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap:8px; margin-top:14px; }
-  .add-form input{ background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px; font-size:13.5px; }
-  .hint{ font-size:12px; color:var(--text-muted); margin-top:8px; }
+  .menu-head{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.8fr 2fr auto auto; gap:8px; font-size:12px; color:var(--text-muted); font-weight:700; padding:0 0 4px; }
+  .menu-row input, .add-form input{
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px;
+    padding:9px 10px; font-size:13.5px; width:100%; min-width:0;
+  }
+  .menu-row input:focus, .add-form input:focus{ outline:none; border-color:var(--red); background:#fff; }
+  .menu-row button, .add-form button{ border:none; border-radius:8px; padding:9px 12px; font-size:12.5px; font-weight:800; cursor:pointer; white-space:nowrap; }
+  .toggle-soldout{ background:#e6f4ea; color:var(--success); }
+  .toggle-soldout.on{ background:var(--ink); color:#fff; }
+  .btn-add{ background:var(--red); color:#fff; }
+  .btn-delete{ background:#fff; color:var(--danger); border:1px solid var(--border) !important; }
+  .add-form{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.8fr 2fr auto; gap:8px; margin-top:16px; padding-top:16px; border-top:2px solid var(--border); }
+  @media (max-width:760px){
+    .menu-head{ display:none; }
+    .menu-row{ grid-template-columns: 1fr 1fr; }
+    .menu-row .f-name, .menu-row .f-desc{ grid-column: 1 / -1; }
+    .add-form{ grid-template-columns: 1fr 1fr; }
+    .add-form #newItemName, .add-form #newItemDesc, .add-form .btn-add{ grid-column: 1 / -1; }
+  }
+  .hint{ font-size:12px; color:var(--text-muted); margin-top:8px; line-height:1.5; }
 
   /* ---------- 설정 ---------- */
   .settings-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
   @media (max-width:560px){ .settings-grid{ grid-template-columns:1fr; } }
   .settings-grid label{ display:block; }
-  .settings-grid .f-label{ font-size:12.5px; color:var(--text-muted); margin-bottom:5px; display:block; }
+  .settings-grid .f-label{ font-size:12.5px; color:var(--text-muted); margin-bottom:5px; display:block; font-weight:700; }
   .settings-grid input{
     width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
     border-radius:8px; padding:11px 12px; font-size:14px;
   }
-  .settings-grid input:focus{ outline:none; border-color:var(--accent); }
-  .btn-save{ margin-top:16px; background:var(--accent); color:#1c1508; border:none; border-radius:var(--radius-sm); padding:12px 20px; font-weight:800; cursor:pointer; }
-  .danger-zone{ border-color: rgba(214,69,69,0.4) !important; }
+  .settings-grid input:focus{ outline:none; border-color:var(--red); background:#fff; }
+  .btn-save{ margin-top:16px; background:var(--red); color:#fff; border:none; border-radius:var(--radius-sm); padding:12px 20px; font-weight:800; cursor:pointer; }
+  .danger-zone{ border-color: rgba(192,36,43,0.4) !important; }
   .danger-zone h3{ color:var(--danger); }
-  .btn-danger{ background:var(--cta); color:#fff; border:none; border-radius:var(--radius-sm); padding:11px 18px; font-weight:800; cursor:pointer; }
+  .btn-danger{ background:#fff; color:var(--danger); border:1.5px solid var(--danger); border-radius:var(--radius-sm); padding:11px 18px; font-weight:800; cursor:pointer; }
 
   /* ---------- 메뉴 사진 ---------- */
   .photo-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap:12px; }
   .photo-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:8px; }
   .photo-box{
-    aspect-ratio:1/1; border-radius:10px; background:var(--bg); border:1.5px dashed var(--border);
+    aspect-ratio:1/1; border-radius:10px; background:#fff; border:1.5px dashed var(--border);
     display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;
     color:var(--text-muted); font-size:12.5px; text-align:center; padding:6px;
   }
   .photo-box.has-image{ border-style:solid; padding:0; }
   .photo-box img{ width:100%; height:100%; object-fit:cover; }
-  .photo-name{ font-weight:700; font-size:13.5px; }
+  .photo-name{ font-weight:700; font-size:14px; font-family:var(--serif); }
   .photo-actions{ display:flex; gap:6px; }
   .photo-actions button{ flex:1; border:none; border-radius:8px; padding:8px; font-size:12px; font-weight:800; cursor:pointer; }
-  .photo-actions .btn-up{ background:var(--accent); color:#1c1508; }
-  .photo-actions .btn-rm{ background:var(--surface); color:var(--danger); border:1px solid var(--border); }
+  .photo-actions .btn-up{ background:var(--red); color:#fff; }
+  .photo-actions .btn-rm{ background:#fff; color:var(--danger); border:1px solid var(--border); }
   .photo-status{ font-size:11.5px; color:var(--text-muted); min-height:14px; }
 
   /* ---------- QR ---------- */
-  #qrcode{ background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-top:14px; }
-  .qr-flex{ display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; }
-  .print-card{ text-align:center; }
+  .qr-tools{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  .qr-tools label{ flex:1; min-width:240px; }
+  .qr-tools .f-label{ font-size:12.5px; color:var(--text-muted); margin-bottom:5px; display:block; font-weight:700; }
+  .qr-tools input{ width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px 12px; font-size:13.5px; }
+  .qr-tools .btn-save{ margin-top:0; }
+  #printArea{ display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:18px; }
+  .qr-card{
+    background:#fff; border:2px solid var(--red); border-radius:12px; padding:14px 12px 12px; text-align:center;
+    break-inside: avoid;
+  }
+  .qr-card .qr-store{ font-family:var(--serif); font-weight:700; font-size:14px; color:var(--ink); }
+  .qr-card .qr-table{ font-family:var(--serif); font-weight:700; font-size:30px; color:var(--red); line-height:1.1; margin:2px 0 8px; }
+  .qr-card .qr-img{ display:flex; justify-content:center; }
+  .qr-card .qr-foot{ font-size:11.5px; color:var(--text-muted); margin-top:8px; }
 
   @media print{
+    body{ background:#fff; }
     body *{ visibility:hidden; }
     #printArea, #printArea *{ visibility:visible; }
-    #printArea{ position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    #printArea{ position:absolute; left:0; top:0; width:100%; grid-template-columns: repeat(2, 1fr); gap:10mm; margin:0; }
+    .qr-card{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   }
 
   .toast{
     position:fixed; left:50%; bottom:26px; transform:translateX(-50%);
-    background:#2b2318; color:var(--text); border:1px solid var(--border);
+    background:var(--ink); color:#fff;
     padding:11px 18px; border-radius:999px; font-size:13.5px; z-index:80;
     opacity:0; transition: opacity 0.25s; pointer-events:none;
   }
@@ -215,6 +255,7 @@
 
 <div id="pinGate">
   <div class="pin-card">
+    <div class="pin-kanji">居酒屋</div>
     <h1>주방 화면</h1>
     <p>스태프 PIN을 입력하세요</p>
     <input id="pinInput" inputmode="numeric" maxlength="6" placeholder="••••">
@@ -251,14 +292,16 @@
   <section id="tab-menu" class="kb-tab">
     <div class="panel">
       <h3>메뉴 목록</h3>
+      <div class="menu-head"><span>메뉴 이름</span><span>가격</span><span>분류</span><span>메뉴 설명 (손님 화면에 표시)</span><span></span><span></span></div>
       <div id="menuManageList"><div class="hint">불러오는 중…</div></div>
       <div class="add-form">
-        <input id="newItemName" placeholder="메뉴 이름 (예: 생맥주 500cc)">
+        <input id="newItemName" placeholder="메뉴 이름 (예: 모츠나베)">
         <input id="newItemPrice" placeholder="가격 (숫자만)" inputmode="numeric">
         <input id="newItemCategory" placeholder="분류 (예: 안주)">
+        <input id="newItemDesc" placeholder="메뉴 설명 (예: 곱창 전골, 2~3인분)" maxlength="80">
         <button class="btn-add" id="addItemBtn">추가</button>
       </div>
-      <div class="hint">가격은 숫자만 입력하세요 (예: 5000). 분류를 비워두면 "기타"로 등록돼요.</div>
+      <div class="hint">입력하면 자동 저장돼요. 가격은 숫자만 (예: 5000), 분류를 비워두면 "기타"로 등록돼요. 메뉴 사진은 "설정" 탭에서 올릴 수 있어요.</div>
     </div>
   </section>
 
@@ -270,6 +313,7 @@
         <label><span class="f-label">은행명</span><input id="setBankName" placeholder="예: 카카오뱅크"></label>
         <label><span class="f-label">계좌번호</span><input id="setAccountNumber" placeholder="예: 3333-01-1234567"></label>
         <label><span class="f-label">예금주</span><input id="setAccountHolder" placeholder="예: 박시후"></label>
+        <label><span class="f-label">테이블 수 (손님이 고를 수 있는 번호 1~N)</span><input id="setTableCount" inputmode="numeric" placeholder="예: 8"></label>
       </div>
       <button class="btn-save" id="saveSettingsBtn">저장</button>
     </div>
@@ -299,19 +343,13 @@
 
   <section id="tab-qr" class="kb-tab">
     <div class="panel">
-      <h3>손님용 주문 페이지 QR</h3>
-      <label class="f-label" style="display:block;margin-bottom:6px;">손님용 페이지 주소 (index.html 배포 URL)</label>
-      <input id="qrUrlInput" style="width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;font-size:13.5px;">
-      <div class="qr-flex">
-        <div class="print-card" id="printArea">
-          <div id="qrcode"></div>
-          <div style="margin-top:8px;color:#000;font-weight:700;" id="qrCaption"></div>
-        </div>
-        <div style="max-width:340px;">
-          <p class="hint">위 주소가 맞는지 확인한 뒤, QR 코드를 인쇄해서 테이블마다 붙여두세요. 손님이 스캔하면 바로 주문 페이지로 연결됩니다.</p>
-          <button class="btn-save" id="printQrBtn">인쇄하기</button>
-        </div>
+      <h3>테이블별 QR 코드</h3>
+      <p class="hint" style="margin:-6px 0 14px;">테이블마다 다른 QR이에요. 손님이 스캔하면 그 테이블 번호가 자동으로 선택돼요. 인쇄해서 해당 번호 테이블에 붙여주세요. (테이블 수는 "설정" 탭에서 바꿀 수 있어요)</p>
+      <div class="qr-tools">
+        <label><span class="f-label">손님용 페이지 주소 (index.html 주소)</span><input id="qrUrlInput"></label>
+        <button class="btn-save" id="printQrBtn">인쇄하기</button>
       </div>
+      <div id="printArea"></div>
     </div>
   </section>
 </div>
@@ -354,7 +392,7 @@
     auth = firebase.auth();
   }catch(e){ console.error(e); }
 
-  var settings = { storeName:'주점', bankName:'', accountNumber:'', accountHolder:'', kitchenPin:'1234' };
+  var settings = { storeName:'주점', bankName:'', accountNumber:'', accountHolder:'', kitchenPin:'1234', tableCount: 8 };
   var settingsLoaded = false;
   var settingsReady = null; // promise
 
@@ -457,8 +495,10 @@
   function subscribeSettingsLive(){
     db.collection('settings').doc('main').onSnapshot(function(snap){
       if (!snap.exists) return;
+      var before = settings.tableCount + '|' + settings.storeName;
       settings = Object.assign(settings, snap.data());
       document.getElementById('kbStoreName').textContent = (settings.storeName || '주점') + ' 주방';
+      if (before !== settings.tableCount + '|' + settings.storeName) drawQr();
     });
   }
 
@@ -553,7 +593,7 @@
     var status = o.status || 'awaiting_payment';
     var sb = STATUS_BADGE[status] || STATUS_BADGE.awaiting_payment;
     var itemsHtml = (o.items||[]).map(function(l){
-      return '<li><span>' + escapeHtml(l.name) + '</span><span>x' + l.qty + '</span></li>';
+      return '<li><span>' + escapeHtml(l.name) + '</span><span>×' + l.qty + '</span></li>';
     }).join('');
     var actions = '';
     if (status === 'awaiting_payment'){
@@ -561,15 +601,20 @@
     } else if (status === 'paid'){
       actions = '<button class="btn-ready" data-id="' + o.id + '">준비 완료</button><button class="btn-cancel" data-id="' + o.id + '">취소</button>';
     }
+    var tableHtml = o.tableNo
+      ? '<div class="order-table"><span class="tn">' + Number(o.tableNo) + '</span><span class="tl">번</span></div>'
+      : '<div class="order-table none"><span class="tn">테이블 미지정</span></div>';
     var proofHtml = o.depositProofImage
       ? '<img class="proof-thumb" src="' + o.depositProofImage + '" alt="입금 확인 캡처" title="탭해서 크게 보기">'
       : '';
     return '<div class="order-card status-' + status + '" data-id="' + o.id + '">' +
-      '<div class="order-card-head"><span class="order-num">#' + o.orderNumber + '</span><span class="order-time">' + fmtTime(o.createdAt) + '</span></div>' +
-      '<span class="badge ' + sb.cls + '">' + sb.label + '</span>' +
+      '<div class="order-card-head">' + tableHtml +
+        '<div class="order-meta"><span class="badge ' + sb.cls + '">' + sb.label + '</span>' +
+        '<span class="order-num">주문 #' + o.orderNumber + '</span><span class="order-time">' + fmtTime(o.createdAt) + '</span></div></div>' +
       '<ul class="order-items">' + itemsHtml + '</ul>' +
+      (o.note ? '<div class="order-note-box">' + escapeHtml(o.note) + '</div>' : '') +
       '<div class="order-foot"><div class="order-amount">' + won(o.totalAmount) + '</div>' +
-        '<div class="order-depositor">입금자 ' + escapeHtml(o.depositorName||'-') + (o.note ? '<div class="order-note">' + escapeHtml(o.note) + '</div>' : '') + '</div></div>' +
+        '<div class="order-depositor">입금자 <b>' + escapeHtml(o.depositorName||'-') + '</b></div></div>' +
       (proofHtml ? '<div class="order-proof-row">' + proofHtml + '</div>' : '') +
       (actions ? '<div class="order-actions">' + actions + '</div>' : '') +
       '</div>';
@@ -648,9 +693,11 @@
       var name = document.getElementById('newItemName').value.trim();
       var price = Number(document.getElementById('newItemPrice').value.trim()) || 0;
       var category = document.getElementById('newItemCategory').value.trim() || '기타';
+      var desc = document.getElementById('newItemDesc').value.trim();
       if (!name){ toast('메뉴 이름을 입력해주세요'); return; }
-      db.collection('menu').add({ name: name, price: price, category: category, soldOut:false, order: Date.now() }).then(function(){
+      db.collection('menu').add({ name: name, price: price, category: category, desc: desc, soldOut:false, order: Date.now() }).then(function(){
         document.getElementById('newItemName').value = '';
+        document.getElementById('newItemDesc').value = '';
         document.getElementById('newItemPrice').value = '';
         document.getElementById('newItemCategory').value = '';
         toast('메뉴를 추가했어요');
@@ -676,6 +723,7 @@
         '<input class="f-name" value="' + escapeHtml(it.name||'') + '">' +
         '<input class="f-price" inputmode="numeric" value="' + (it.price||0) + '">' +
         '<input class="f-category" value="' + escapeHtml(it.category||'') + '">' +
+        '<input class="f-desc" maxlength="80" placeholder="메뉴 설명 (선택)" value="' + escapeHtml(it.desc||'') + '">' +
         '<button class="toggle-soldout ' + (it.soldOut ? 'on' : '') + '">' + (it.soldOut ? '품절중' : '판매중') + '</button>' +
         '<button class="btn-delete">삭제</button>' +
         '</div>';
@@ -683,15 +731,20 @@
 
     wrap.querySelectorAll('.menu-row').forEach(function(row){
       var id = row.dataset.id;
-      var saveField = debounce(function(field, value){
-        var patch = {};
-        if (field === 'price') value = Number(value) || 0;
-        patch[field] = value;
-        db.collection('menu').doc(id).update(patch).catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
-      }, 500);
+      var savers = {};
+      function saveField(field, value){
+        if (!savers[field]) savers[field] = debounce(function(f, v){
+          var patch = {};
+          if (f === 'price') v = Number(v) || 0;
+          patch[f] = v;
+          db.collection('menu').doc(id).update(patch).catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
+        }, 500);
+        savers[field](field, value);
+      }
       row.querySelector('.f-name').addEventListener('input', function(e){ saveField('name', e.target.value.trim()); });
       row.querySelector('.f-price').addEventListener('input', function(e){ saveField('price', e.target.value.trim()); });
       row.querySelector('.f-category').addEventListener('input', function(e){ saveField('category', e.target.value.trim() || '기타'); });
+      row.querySelector('.f-desc').addEventListener('input', function(e){ saveField('desc', e.target.value.trim()); });
       row.querySelector('.toggle-soldout').addEventListener('click', function(e){
         var willBeSoldOut = !e.target.classList.contains('on');
         db.collection('menu').doc(id).update({ soldOut: willBeSoldOut }).catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
@@ -810,13 +863,15 @@
     document.getElementById('setBankName').value = settings.bankName || '';
     document.getElementById('setAccountNumber').value = settings.accountNumber || '';
     document.getElementById('setAccountHolder').value = settings.accountHolder || '';
+    document.getElementById('setTableCount').value = settings.tableCount || 8;
 
     document.getElementById('saveSettingsBtn').addEventListener('click', function(){
       var patch = {
         storeName: document.getElementById('setStoreName').value.trim() || '주점',
         bankName: document.getElementById('setBankName').value.trim(),
         accountNumber: document.getElementById('setAccountNumber').value.trim(),
-        accountHolder: document.getElementById('setAccountHolder').value.trim()
+        accountHolder: document.getElementById('setAccountHolder').value.trim(),
+        tableCount: Math.max(1, Math.min(60, parseInt(document.getElementById('setTableCount').value, 10) || 8))
       };
       db.collection('settings').doc('main').set(patch, { merge:true }).then(function(){
         toast('저장했어요');
@@ -851,23 +906,33 @@
   }
 
   // ---------- QR ----------
+  var drawQr = function(){};
   function initQr(){
     var input = document.getElementById('qrUrlInput');
-    var guess = location.href.replace(/kitchen\.html.*$/, 'index.html');
-    input.value = guess;
+    input.value = location.href.replace(/kitchen\.html.*$/, 'index.html').replace(/[?#].*$/, '');
 
-    function draw(){
-      var el = document.getElementById('qrcode');
-      el.innerHTML = '';
-      var url = input.value.trim();
-      if (!url) return;
-      try{
-        new QRCode(el, { text: url, width: 220, height: 220, colorDark:'#15120d', colorLight:'#ffffff' });
-      }catch(e){ console.error(e); }
-      document.getElementById('qrCaption').textContent = settings.storeName || '주점';
-    }
-    draw();
-    input.addEventListener('change', draw);
+    drawQr = function(){
+      var area = document.getElementById('printArea');
+      area.innerHTML = '';
+      var base = input.value.trim().replace(/[?#].*$/, '');
+      if (!base) return;
+      var n = Math.max(1, Math.min(60, parseInt(settings.tableCount, 10) || 8));
+      for (var t = 1; t <= n; t++){
+        var card = document.createElement('div');
+        card.className = 'qr-card';
+        card.innerHTML = '<div class="qr-store">' + escapeHtml(settings.storeName || '주점') + '</div>' +
+          '<div class="qr-table">' + t + '번 테이블</div><div class="qr-img"></div>' +
+          '<div class="qr-foot">카메라로 찍고 주문하세요</div>';
+        area.appendChild(card);
+        try{
+          var opts = { text: base + '?table=' + t, width: 160, height: 160, colorDark:'#1f1a17', colorLight:'#ffffff' };
+          if (QRCode.CorrectLevel) opts.correctLevel = QRCode.CorrectLevel.M;
+          new QRCode(card.querySelector('.qr-img'), opts);
+        }catch(e){ console.error(e); }
+      }
+    };
+    drawQr();
+    input.addEventListener('change', drawQr);
     document.getElementById('printQrBtn').addEventListener('click', function(){ window.print(); });
   }
 
