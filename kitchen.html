@@ -267,7 +267,8 @@
     .wait-row select, .wait-btns{ grid-column: 1 / -1; }
     .wait-btns button{ flex:1; }
   }
-  .qr-card.entrance{ border-width:3px; background:var(--red-soft); }
+  .qr-card.main{ max-width:320px; border-width:3px; padding:20px 16px 16px; }
+  .qr-card.main .qr-table{ font-size:26px; }
 
   .res-form{ display:grid; grid-template-columns: 150px 110px 1fr 80px 120px 130px; gap:8px; }
   .res-form input, .res-form select, .res-item select{
@@ -327,7 +328,7 @@
   .qr-tools .f-label{ font-size:12.5px; color:var(--text-muted); margin-bottom:5px; display:block; font-weight:700; }
   .qr-tools input{ width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px 12px; font-size:13.5px; }
   .qr-tools .btn-save{ margin-top:0; }
-  #printArea{ display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-top:18px; }
+  #printArea{ display:flex; justify-content:center; margin-top:18px; }
   .qr-card{
     background:#fff; border:2px solid var(--red); border-radius:12px; padding:14px 12px 12px; text-align:center;
     break-inside: avoid;
@@ -341,7 +342,7 @@
     body{ background:#fff; }
     body *{ visibility:hidden; }
     #printArea, #printArea *{ visibility:visible; }
-    #printArea{ position:absolute; left:0; top:0; width:100%; grid-template-columns: repeat(2, 1fr); gap:10mm; margin:0; }
+    #printArea{ position:absolute; left:0; top:20mm; width:100%; margin:0; }
     .qr-card{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   }
 
@@ -488,8 +489,8 @@
 
   <section id="tab-qr" class="kb-tab">
     <div class="panel">
-      <h3>QR 코드 (입구 웨이팅 + 테이블별)</h3>
-      <p class="hint" style="margin:-6px 0 14px;">테이블마다 다른 QR이에요. 손님이 스캔하면 그 테이블 번호가 자동으로 선택돼요. 인쇄해서 해당 번호 테이블에 붙여주세요. (테이블 수는 "설정" 탭에서 바꿀 수 있어요)</p>
+      <h3>손님용 QR 코드</h3>
+      <p class="hint" style="margin:-6px 0 14px;">QR 하나로 주문과 웨이팅을 모두 해요. 필요한 만큼 인쇄해서 테이블과 입구에 붙여주세요. 손님은 주문할 때 테이블 번호를 직접 골라요.</p>
       <div class="qr-tools">
         <label><span class="f-label">손님용 페이지 주소 (index.html 주소)</span><input id="qrUrlInput"></label>
         <button class="btn-save" id="printQrBtn">인쇄하기</button>
@@ -1401,30 +1402,17 @@
       area.innerHTML = '';
       var base = input.value.trim().replace(/[?#].*$/, '');
       if (!base) return;
-      var n = Math.max(1, Math.min(60, parseInt(settings.tableCount, 10) || 8));
-      var ent = document.createElement('div');
-      ent.className = 'qr-card entrance';
-      ent.innerHTML = '<div class="qr-store">' + escapeHtml(settings.storeName || '주점') + '</div>' +
-        '<div class="qr-table">웨이팅 등록</div><div class="qr-img"></div><div class="qr-foot">입구에 붙여주세요 · 찍으면 대기번호가 나와요</div>';
-      area.appendChild(ent);
+      var card = document.createElement('div');
+      card.className = 'qr-card main';
+      card.innerHTML = '<div class="qr-store">' + escapeHtml(settings.storeName || '주점') + '</div>' +
+        '<div class="qr-table">주문 · 웨이팅</div><div class="qr-img"></div>' +
+        '<div class="qr-foot">카메라로 찍고 메뉴를 주문하세요<br>자리가 없으면 화면 위 "웨이팅"을 눌러주세요</div>';
+      area.appendChild(card);
       try{
-        var eo = { text: base + '?wait=1', width: 160, height: 160, colorDark:'#1f1a17', colorLight:'#ffffff' };
-        if (QRCode.CorrectLevel) eo.correctLevel = QRCode.CorrectLevel.M;
-        new QRCode(ent.querySelector('.qr-img'), eo);
+        var opts = { text: base, width: 240, height: 240, colorDark:'#1f1a17', colorLight:'#ffffff' };
+        if (QRCode.CorrectLevel) opts.correctLevel = QRCode.CorrectLevel.M;
+        new QRCode(card.querySelector('.qr-img'), opts);
       }catch(e){ console.error(e); }
-      for (var t = 1; t <= n; t++){
-        var card = document.createElement('div');
-        card.className = 'qr-card';
-        card.innerHTML = '<div class="qr-store">' + escapeHtml(settings.storeName || '주점') + '</div>' +
-          '<div class="qr-table">' + t + '번 테이블</div><div class="qr-img"></div>' +
-          '<div class="qr-foot">카메라로 찍고 주문하세요</div>';
-        area.appendChild(card);
-        try{
-          var opts = { text: base + '?table=' + t, width: 160, height: 160, colorDark:'#1f1a17', colorLight:'#ffffff' };
-          if (QRCode.CorrectLevel) opts.correctLevel = QRCode.CorrectLevel.M;
-          new QRCode(card.querySelector('.qr-img'), opts);
-        }catch(e){ console.error(e); }
-      }
     };
     drawQr();
     input.addEventListener('change', drawQr);
