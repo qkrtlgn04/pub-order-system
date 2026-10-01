@@ -174,6 +174,23 @@
   .danger-zone h3{ color:var(--danger); }
   .btn-danger{ background:var(--cta); color:#fff; border:none; border-radius:var(--radius-sm); padding:11px 18px; font-weight:800; cursor:pointer; }
 
+  /* ---------- 메뉴 사진 ---------- */
+  .photo-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap:12px; }
+  .photo-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:8px; }
+  .photo-box{
+    aspect-ratio:1/1; border-radius:10px; background:var(--bg); border:1.5px dashed var(--border);
+    display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;
+    color:var(--text-muted); font-size:12.5px; text-align:center; padding:6px;
+  }
+  .photo-box.has-image{ border-style:solid; padding:0; }
+  .photo-box img{ width:100%; height:100%; object-fit:cover; }
+  .photo-name{ font-weight:700; font-size:13.5px; }
+  .photo-actions{ display:flex; gap:6px; }
+  .photo-actions button{ flex:1; border:none; border-radius:8px; padding:8px; font-size:12px; font-weight:800; cursor:pointer; }
+  .photo-actions .btn-up{ background:var(--accent); color:#1c1508; }
+  .photo-actions .btn-rm{ background:var(--surface); color:var(--danger); border:1px solid var(--border); }
+  .photo-status{ font-size:11.5px; color:var(--text-muted); min-height:14px; }
+
   /* ---------- QR ---------- */
   #qrcode{ background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-top:14px; }
   .qr-flex{ display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; }
@@ -258,6 +275,13 @@
     </div>
 
     <div class="panel">
+      <h3>메뉴 사진</h3>
+      <p class="hint" style="margin:-6px 0 14px;">사진을 올리면 손님 주문 화면에 바로 나와요. 휴대폰으로 찍은 사진을 그대로 올려도 자동으로 줄여서 저장해요.</p>
+      <div class="photo-grid" id="photoGrid"><div class="hint">불러오는 중…</div></div>
+      <input type="file" id="photoFileInput" accept="image/*" hidden>
+    </div>
+
+    <div class="panel">
       <h3>주방 PIN 변경</h3>
       <div class="settings-grid">
         <label><span class="f-label">새 PIN (4~6자리 숫자)</span><input id="newPin" inputmode="numeric" maxlength="6" placeholder="••••"></label>
@@ -293,7 +317,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<div id="imgLightbox" hidden><img id="imgLightboxImg" src="" alt="입금 확인 캡처 크게 보기"></div>
+<div id="imgLightbox" hidden><img id="imgLightboxImg" src="" alt="사진 크게 보기"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
@@ -393,7 +417,9 @@
     });
     auth.signInAnonymously().catch(function(err){
       console.error(err);
-      document.getElementById('pinError').textContent = '연결 실패 (' + err.code + ')';
+      document.getElementById('pinError').textContent = (err.code === 'auth/too-many-requests')
+        ? '접속 요청이 잠시 몰렸어요. 1~2분 뒤 새로고침 해주세요. (' + err.code + ')'
+        : '연결 실패 (' + err.code + ')';
     });
   }
   boot();
@@ -494,7 +520,7 @@
       firstOrdersSnapshot = false;
     }, function(err){
       console.error(err);
-      document.getElementById('activeOrders').innerHTML = '<div class="hint">주문 목록을 불러오지 못했어요. 보안 규칙을 확인해주세요.</div>';
+      document.getElementById('activeOrders').innerHTML = '<div class="hint">주문 목록을 불러오지 못했어요 (' + escapeHtml(err.code || err.message) + '). 새로고침 해주세요.</div>';
     });
   }
 
@@ -537,14 +563,14 @@
     }
     var proofHtml = o.depositProofImage
       ? '<img class="proof-thumb" src="' + o.depositProofImage + '" alt="입금 확인 캡처" title="탭해서 크게 보기">'
-      : '<span class="proof-missing">캡처 없음</span>';
+      : '';
     return '<div class="order-card status-' + status + '" data-id="' + o.id + '">' +
       '<div class="order-card-head"><span class="order-num">#' + o.orderNumber + '</span><span class="order-time">' + fmtTime(o.createdAt) + '</span></div>' +
       '<span class="badge ' + sb.cls + '">' + sb.label + '</span>' +
       '<ul class="order-items">' + itemsHtml + '</ul>' +
       '<div class="order-foot"><div class="order-amount">' + won(o.totalAmount) + '</div>' +
         '<div class="order-depositor">입금자 ' + escapeHtml(o.depositorName||'-') + (o.note ? '<div class="order-note">' + escapeHtml(o.note) + '</div>' : '') + '</div></div>' +
-      '<div class="order-proof-row">' + proofHtml + '</div>' +
+      (proofHtml ? '<div class="order-proof-row">' + proofHtml + '</div>' : '') +
       (actions ? '<div class="order-actions">' + actions + '</div>' : '') +
       '</div>';
   }
@@ -583,6 +609,9 @@
   }
 
   // ---------- 메뉴 관리 ----------
+  var menuRows = [];
+  var pendingMenuRender = false;
+
   function initMenuManage(){
     db.collection('menu').onSnapshot(function(snap){
       var rows = [];
@@ -591,38 +620,29 @@
         if (a.order != null && b.order != null) return a.order - b.order;
         return (a.name||'').localeCompare(b.name||'','ko');
       });
-      var wrap = document.getElementById('menuManageList');
-      if (rows.length === 0){ wrap.innerHTML = '<div class="hint">등록된 메뉴가 없어요. 아래에서 추가해주세요.</div>'; return; }
-      wrap.innerHTML = rows.map(function(it){
-        return '<div class="menu-row" data-id="' + it.id + '">' +
-          '<input class="f-name" value="' + escapeHtml(it.name||'') + '">' +
-          '<input class="f-price" inputmode="numeric" value="' + (it.price||0) + '">' +
-          '<input class="f-category" value="' + escapeHtml(it.category||'') + '">' +
-          '<button class="toggle-soldout ' + (it.soldOut ? 'on' : '') + '">' + (it.soldOut ? '품절중' : '판매중') + '</button>' +
-          '<button class="btn-delete">삭제</button>' +
-          '</div>';
-      }).join('');
+      menuRows = rows;
+      renderPhotoGrid();
+      // 이 기기에서 메뉴 이름/가격을 입력하는 중이면 목록을 다시 그리지 않아요 (커서가 튀는 문제 방지)
+      var listEl = document.getElementById('menuManageList');
+      if (listEl.contains(document.activeElement) && document.activeElement.tagName === 'INPUT'){
+        pendingMenuRender = true;
+        return;
+      }
+      renderMenuManage();
+    }, function(err){
+      console.error(err);
+      document.getElementById('menuManageList').innerHTML = '<div class="hint">메뉴를 불러오지 못했어요 (' + escapeHtml(err.code || err.message) + ')</div>';
+    });
 
-      wrap.querySelectorAll('.menu-row').forEach(function(row){
-        var id = row.dataset.id;
-        var saveField = debounce(function(field, value){
-          var patch = {};
-          if (field === 'price') value = Number(value) || 0;
-          patch[field] = value;
-          db.collection('menu').doc(id).update(patch).catch(function(err){ toast('저장 실패: ' + err.message); });
-        }, 500);
-        row.querySelector('.f-name').addEventListener('input', function(e){ saveField('name', e.target.value.trim()); });
-        row.querySelector('.f-price').addEventListener('input', function(e){ saveField('price', e.target.value.trim()); });
-        row.querySelector('.f-category').addEventListener('input', function(e){ saveField('category', e.target.value.trim() || '기타'); });
-        row.querySelector('.toggle-soldout').addEventListener('click', function(e){
-          var willBeSoldOut = !e.target.classList.contains('on');
-          db.collection('menu').doc(id).update({ soldOut: willBeSoldOut }).catch(function(err){ toast('저장 실패: ' + err.message); });
-        });
-        row.querySelector('.btn-delete').addEventListener('click', function(){
-          if (confirm('이 메뉴를 삭제할까요?')) db.collection('menu').doc(id).delete().catch(function(err){ toast('삭제 실패: ' + err.message); });
-        });
-      });
-    }, function(err){ console.error(err); });
+    document.getElementById('menuManageList').addEventListener('focusout', function(){
+      setTimeout(function(){
+        var listEl = document.getElementById('menuManageList');
+        if (pendingMenuRender && !listEl.contains(document.activeElement)){
+          pendingMenuRender = false;
+          renderMenuManage();
+        }
+      }, 700);
+    });
 
     document.getElementById('addItemBtn').addEventListener('click', function(){
       var name = document.getElementById('newItemName').value.trim();
@@ -645,6 +665,143 @@
       clearTimeout(t);
       t = setTimeout(function(){ fn.apply(null, args); }, ms);
     };
+  }
+
+  function renderMenuManage(){
+    var rows = menuRows;
+    var wrap = document.getElementById('menuManageList');
+    if (rows.length === 0){ wrap.innerHTML = '<div class="hint">등록된 메뉴가 없어요. 아래에서 추가해주세요.</div>'; return; }
+    wrap.innerHTML = rows.map(function(it){
+      return '<div class="menu-row" data-id="' + it.id + '">' +
+        '<input class="f-name" value="' + escapeHtml(it.name||'') + '">' +
+        '<input class="f-price" inputmode="numeric" value="' + (it.price||0) + '">' +
+        '<input class="f-category" value="' + escapeHtml(it.category||'') + '">' +
+        '<button class="toggle-soldout ' + (it.soldOut ? 'on' : '') + '">' + (it.soldOut ? '품절중' : '판매중') + '</button>' +
+        '<button class="btn-delete">삭제</button>' +
+        '</div>';
+    }).join('');
+
+    wrap.querySelectorAll('.menu-row').forEach(function(row){
+      var id = row.dataset.id;
+      var saveField = debounce(function(field, value){
+        var patch = {};
+        if (field === 'price') value = Number(value) || 0;
+        patch[field] = value;
+        db.collection('menu').doc(id).update(patch).catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
+      }, 500);
+      row.querySelector('.f-name').addEventListener('input', function(e){ saveField('name', e.target.value.trim()); });
+      row.querySelector('.f-price').addEventListener('input', function(e){ saveField('price', e.target.value.trim()); });
+      row.querySelector('.f-category').addEventListener('input', function(e){ saveField('category', e.target.value.trim() || '기타'); });
+      row.querySelector('.toggle-soldout').addEventListener('click', function(e){
+        var willBeSoldOut = !e.target.classList.contains('on');
+        db.collection('menu').doc(id).update({ soldOut: willBeSoldOut }).catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
+      });
+      row.querySelector('.btn-delete').addEventListener('click', function(){
+        if (confirm('이 메뉴를 삭제할까요?')) db.collection('menu').doc(id).delete().catch(function(err){ toast('삭제 실패: ' + (err.code || err.message)); });
+      });
+    });
+  }
+
+  // ---------- 메뉴 사진 ----------
+  var photoTargetId = null;
+  var photoBusy = {}; // id -> 상태 메시지
+
+  function renderPhotoGrid(){
+    var grid = document.getElementById('photoGrid');
+    if (!grid) return;
+    if (menuRows.length === 0){ grid.innerHTML = '<div class="hint">먼저 "메뉴 관리" 탭에서 메뉴를 등록해주세요.</div>'; return; }
+    grid.innerHTML = menuRows.map(function(it){
+      var box = it.image
+        ? '<div class="photo-box has-image" data-id="' + it.id + '"><img src="' + it.image + '" alt=""></div>'
+        : '<div class="photo-box" data-id="' + it.id + '">탭해서<br>사진 올리기</div>';
+      return '<div class="photo-card">' + box +
+        '<div class="photo-name">' + escapeHtml(it.name || '') + '</div>' +
+        '<div class="photo-actions">' +
+          '<button class="btn-up" data-id="' + it.id + '">' + (it.image ? '사진 변경' : '사진 올리기') + '</button>' +
+          (it.image ? '<button class="btn-rm" data-id="' + it.id + '">삭제</button>' : '') +
+        '</div>' +
+        '<div class="photo-status" id="pst-' + it.id + '">' + escapeHtml(photoBusy[it.id] || '') + '</div>' +
+        '</div>';
+    }).join('');
+    grid.querySelectorAll('.photo-box, .btn-up').forEach(function(el){
+      el.addEventListener('click', function(){ pickPhoto(el.dataset.id); });
+    });
+    grid.querySelectorAll('.btn-rm').forEach(function(b){
+      b.addEventListener('click', function(){
+        if (!confirm('이 메뉴 사진을 삭제할까요?')) return;
+        db.collection('menu').doc(b.dataset.id).update({ image: firebase.firestore.FieldValue.delete() })
+          .then(function(){ toast('사진을 삭제했어요'); })
+          .catch(function(err){ toast('삭제 실패: ' + (err.code || err.message)); });
+      });
+    });
+  }
+
+  function setPhotoStatus(id, msg){
+    if (msg) photoBusy[id] = msg; else delete photoBusy[id];
+    var el = document.getElementById('pst-' + id);
+    if (el) el.textContent = msg || '';
+  }
+
+  var photoInput = document.getElementById('photoFileInput');
+  function pickPhoto(id){
+    photoTargetId = id;
+    photoInput.value = '';
+    photoInput.click();
+  }
+  photoInput.addEventListener('change', function(){
+    var file = photoInput.files && photoInput.files[0];
+    var id = photoTargetId;
+    if (!file || !id) return;
+    setPhotoStatus(id, '사진 줄이는 중…');
+    compressUntilSmall(file).then(function(dataUrl){
+      setPhotoStatus(id, '저장 중…');
+      return db.collection('menu').doc(id).update({ image: dataUrl });
+    }).then(function(){
+      setPhotoStatus(id, '');
+      toast('사진을 저장했어요');
+    }).catch(function(err){
+      console.error(err);
+      setPhotoStatus(id, '실패: ' + (err.code || err.message));
+    });
+  });
+
+  function compressImageFile(file, maxDim, quality){
+    return new Promise(function(resolve, reject){
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function(){
+        var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        var cw = Math.max(1, Math.round(img.width * scale));
+        var ch = Math.max(1, Math.round(img.height * scale));
+        var canvas = document.createElement('canvas');
+        canvas.width = cw; canvas.height = ch;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cw, ch); // 투명 PNG 대비
+        ctx.drawImage(img, 0, 0, cw, ch);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('이미지를 열 수 없어요 (HEIC 등은 JPG로 바꿔서 올려주세요)')); };
+      img.src = url;
+    });
+  }
+
+  function compressUntilSmall(file){
+    // 메뉴 문서 한도(1MB) 안에서, 손님 폰에서도 빨리 뜨도록 약 300KB 이하로 맞춰요
+    var attempts = [
+      { maxDim: 900, quality: 0.75 },
+      { maxDim: 760, quality: 0.68 },
+      { maxDim: 620, quality: 0.62 },
+      { maxDim: 480, quality: 0.55 }
+    ];
+    var LIMIT = 400000; // dataURL 문자열 길이
+    var i = 0;
+    function tryNext(){
+      if (i >= attempts.length) return Promise.reject(new Error('사진 용량이 너무 커요. 다른 사진으로 시도해주세요.'));
+      var a = attempts[i++];
+      return compressImageFile(file, a.maxDim, a.quality).then(function(d){ return d.length <= LIMIT ? d : tryNext(); });
+    }
+    return tryNext();
   }
 
   // ---------- 설정 ----------

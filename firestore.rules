@@ -1,45 +1,62 @@
 rules_version = '2';
 
 // ============================================================
-// Firestore 보안 규칙
+// Firestore 보안 규칙 (v2 — 2026-10 수정본)
 // Firebase 콘솔 → Firestore Database → 규칙(Rules) 탭에
-// 이 내용을 그대로 붙여넣고 "게시(Publish)" 하세요.
+// 이 내용을 "전부" 덮어써서 붙여넣고 "게시(Publish)" 하세요.
 //
-// 방식: 손님은 "익명 로그인(Anonymous Auth)" 상태로 접속하므로
-// request.auth != null 이 참이 됩니다. 즉 "로그인한 사람"이면
-// 누구나(스태프/손님 구분 없이) 메뉴를 보고 주문을 넣을 수 있고,
-// 주방 화면에서는 주문 상태를 바꿀 수 있습니다.
-//
-// 주의: 이 규칙은 "하룻밤 행사용" 수준의 가벼운 보안입니다.
-// 은행 계좌번호처럼 원래도 공개해야 하는 정보만 다루고,
-// 실제 결제(계좌이체)는 Firebase가 아니라 손님이 본인 은행 앱으로
-// 직접 처리한다는 전제입니다. 메뉴/주문을 장난으로 조작하는 손님이
-// 있을 수 있다는 점은 감안해주세요(행사 후 "설정" 탭의 PIN을 아는
-// 스태프만 주방 화면에 들어올 수 있습니다).
+// 바뀐 점
+// - 손님 주문 화면은 로그인(익명 인증) 없이 주문할 수 있어요.
+//   (같은 와이파이에서 여러 명이 동시에 접속하면 익명 로그인이 막혀
+//    주문이 안 되던 문제 해결)
+// - 대신 손님은 "새 주문 넣기"와 "주문번호 +1"만 할 수 있고,
+//   주문 상태 변경·메뉴 수정·설정 변경은 주방 화면(익명 로그인)만 가능해요.
+// - 메뉴 사진은 메뉴 문서 안에 함께 저장돼요 (별도 Storage 불필요).
 // ============================================================
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 메뉴: 누구나 읽기 가능, 로그인(익명 포함)한 사람만 쓰기 가능
+    // 메뉴(+사진): 누구나 읽기, 주방 화면만 수정
     match /menu/{itemId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
 
-    // 주문: 누구나 읽기 가능(주방 화면/손님 상태 확인),
-    // 로그인한 사람만 생성/수정 가능, 삭제는 막음(취소는 상태값으로 처리)
+    // 주문
     match /orders/{orderId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null; // 관리자 "전체 초기화" 기능에 필요
+
+      // 손님: 정해진 형식의 "새 주문"만 넣을 수 있음
+      allow create: if request.auth != null || isValidNewOrder(request.resource.data);
+
+      // 상태 변경 / 전체 초기화는 주방 화면만
+      allow update, delete: if request.auth != null;
     }
 
-    // 설정(상점명/계좌정보/PIN/주문번호 카운터)
+    // 설정(상점명/계좌/PIN): 누구나 읽기, 주방 화면만 수정
     match /settings/{docId} {
       allow read: if true;
       allow write: if request.auth != null;
+    }
+
+    // 주문번호 카운터: 손님은 "1 올리기"만 가능
+    match /settings/counter {
+      allow create: if request.resource.data.keys().hasOnly(['nextOrderNumber'])
+                    && request.resource.data.nextOrderNumber == 2;
+      allow update: if request.resource.data.keys().hasOnly(['nextOrderNumber'])
+                    && request.resource.data.nextOrderNumber == resource.data.nextOrderNumber + 1;
+    }
+
+    function isValidNewOrder(d) {
+      return d.keys().hasOnly(['orderNumber', 'items', 'totalAmount', 'depositorName', 'note', 'status', 'createdAt'])
+        && d.status == 'awaiting_payment'
+        && d.orderNumber is int && d.orderNumber > 0
+        && d.items is list && d.items.size() > 0 && d.items.size() <= 30
+        && d.totalAmount is int && d.totalAmount >= 0
+        && d.depositorName is string && d.depositorName.size() > 0 && d.depositorName.size() <= 30
+        && d.note is string && d.note.size() <= 60
+        && d.createdAt == request.time;
     }
   }
 }
