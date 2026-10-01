@@ -128,6 +128,7 @@
   .wait-call .wc-title{ font-family:var(--serif); font-weight:700; font-size:30px; }
   .wait-call .wc-table{ font-size:18px; font-weight:800; margin-top:6px; }
   .wait-call .wc-sub{ font-size:12.5px; opacity:0.85; margin-top:8px; }
+  .ack-done{ text-align:center; font-weight:800; color:var(--success); background:#e6f4ea; border-radius:12px; padding:14px; margin-top:12px; }
   .wait-queue-info{ text-align:center; font-size:14px; color:var(--text-muted); margin:2px 0 4px; }
   .wait-queue-info b{ color:var(--red); font-size:18px; }
   .people-row{ display:flex; align-items:center; gap:12px; }
@@ -848,9 +849,22 @@
         try{ localStorage.setItem(TABLE_KEY, String(selectedTable)); }catch(e){}
       }
       lastWaitStatus = myWaitData.status;
+      markCallSeen();
       renderWaitCard(); renderWaitSheet();
     }, function(err){ console.error(err); });
   }
+
+  // 호출 알림을 손님이 실제로 화면에서 봤는지 주방에 알려줘요
+  var seenSending = false;
+  function markCallSeen(){
+    if (!myWait || !myWaitData || myWaitData.status !== 'called' || myWaitData.seenAt || seenSending) return;
+    if (document.visibilityState && document.visibilityState !== 'visible') return;
+    seenSending = true;
+    db.collection('waitlist').doc(myWait.id).update({ seenAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(function(err){ console.error(err); })
+      .finally(function(){ seenSending = false; });
+  }
+  document.addEventListener('visibilitychange', markCallSeen);
 
   function clearMyWait(){
     if (myWaitUnsub){ myWaitUnsub(); myWaitUnsub = null; }
@@ -901,7 +915,7 @@
       var a = aheadCount();
       text = (a === 0 ? '곧 입장 차례예요!' : '내 앞에 ' + a + '팀') + '<span>입장할 차례가 되면 알려드려요 · 탭해서 자세히</span>';
     } else if (st === 'called'){
-      text = '입장 가능! ' + (myWaitData.tableNo ? myWaitData.tableNo + '번 테이블로' : '입구로') + ' 오세요<span>스태프에게 대기번호를 보여주세요</span>';
+      text = '입장 가능! ' + (myWaitData.tableNo ? myWaitData.tableNo + '번 테이블로' : '입구로') + ' 오세요<span>' + (myWaitData.ackAt ? '✓ 가고 있다고 전달했어요' : '탭해서 "지금 갈게요"를 눌러주세요') + '</span>';
     } else {
       text = '입장 완료' + (myWaitData.tableNo ? ' · ' + myWaitData.tableNo + '번 테이블' : '') + '<span>메뉴를 골라 주문해 주세요 · 탭해서 닫기</span>';
     }
@@ -924,7 +938,10 @@
     if (st === 'called'){
       body = '<div class="wait-call"><div class="wc-title">입장 가능해요!</div>' +
         '<div class="wc-table">' + (myWaitData.tableNo ? myWaitData.tableNo + '번 테이블로 오세요' : '입구로 와주세요') + '</div>' +
-        '<div class="wc-sub">대기번호 ' + myWaitData.waitNumber + '번 · 스태프에게 이 화면을 보여주세요</div></div>';
+        '<div class="wc-sub">대기번호 ' + myWaitData.waitNumber + '번 · 스태프에게 이 화면을 보여주세요</div></div>' +
+        (myWaitData.ackAt
+          ? '<div class="ack-done">✓ 가고 있다고 전달했어요</div>'
+          : '<button class="btn-submit" id="waitAckBtn">지금 갈게요!</button>');
     } else if (st === 'waiting'){
       var a = aheadCount();
       body = '<div class="wait-big"><div class="wb-label">나의 대기번호</div><div class="wb-num">' + myWaitData.waitNumber + '</div>' +
@@ -939,6 +956,14 @@
         '<div class="wb-desc">다시 기다리시려면 새로 등록해 주세요.</div></div>';
     }
     document.getElementById('waitStatusBody').innerHTML = body;
+    var ackBtn = document.getElementById('waitAckBtn');
+    if (ackBtn) ackBtn.addEventListener('click', function(){
+      ackBtn.disabled = true; ackBtn.textContent = '전달 중…';
+      db.collection('waitlist').doc(myWait.id).update({
+        ackAt: firebase.firestore.FieldValue.serverTimestamp(),
+        seenAt: myWaitData.seenAt || firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(function(err){ toast(errorMessage(err).replace('주문', '웨이팅')); ackBtn.disabled = false; ackBtn.textContent = '지금 갈게요!'; });
+    });
   }
 
   document.getElementById('waitDoneBtn').addEventListener('click', function(){ clearMyWait(); closeWaitSheet(); });

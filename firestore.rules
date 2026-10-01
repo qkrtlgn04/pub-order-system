@@ -1,18 +1,6 @@
 rules_version = '2';
 
-// ============================================================
-// Firestore 보안 규칙 (v5 — 테이블 번호 + 테이블·예약 + 웨이팅)
-// Firebase 콘솔 → Firestore Database → 규칙(Rules) 탭에
-// 이 내용을 "전부" 덮어써서 붙여넣고 "게시(Publish)" 하세요.
-//
-// 바뀐 점
-// - 손님 주문 화면은 로그인(익명 인증) 없이 주문할 수 있어요.
-//   (같은 와이파이에서 여러 명이 동시에 접속하면 익명 로그인이 막혀
-//    주문이 안 되던 문제 해결)
-// - 대신 손님은 "새 주문 넣기"와 "주문번호 +1"만 할 수 있고,
-//   주문 상태 변경·메뉴 수정·설정 변경은 주방 화면(익명 로그인)만 가능해요.
-// - 메뉴 사진은 메뉴 문서 안에 함께 저장돼요 (별도 Storage 불필요).
-// ============================================================
+// 주점 주문 시스템 보안 규칙 v6 (주문 + 테이블·예약 + 웨이팅)
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -49,10 +37,15 @@ service cloud.firestore {
     match /waitlist/{waitId} {
       allow read: if true;
       allow create: if request.auth != null || isValidWait(request.resource.data);
+      // 손님: 본인 웨이팅 취소, 호출 알림 확인 / "지금 갈게요" 응답
       allow update: if request.auth != null
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
             && request.resource.data.status == 'cancelled'
-            && resource.data.status in ['waiting', 'called']);
+            && resource.data.status in ['waiting', 'called'])
+        || (resource.data.status == 'called'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seenAt', 'ackAt'])
+            && request.resource.data.get('seenAt', request.time) is timestamp
+            && request.resource.data.get('ackAt', request.time) is timestamp);
       allow delete: if request.auth != null;
     }
 

@@ -251,6 +251,13 @@
     padding:10px 12px; border:1px solid var(--border); border-radius:12px; margin-bottom:8px; background:#fff;
   }
   .wait-row.called{ background:var(--red-soft); border-color:var(--red); }
+  .wait-row.coming{ background:#e6f4ea; border-color:var(--success); }
+  .wait-row.late{ background:#fff7e6; border-color:var(--pending); }
+  .resp{ display:inline-block; margin-top:4px; font-size:12px; font-weight:800; padding:3px 8px; border-radius:6px; }
+  .resp.r-none{ background:#fdf3e1; color:var(--pending); }
+  .resp.r-seen{ background:#e8f0fa; color:var(--info); }
+  .resp.r-coming{ background:var(--success); color:#fff; }
+  .resp.r-late{ background:var(--pending); color:#fff; }
   .wait-no{ font-family:var(--serif); font-weight:700; font-size:30px; color:var(--red); line-height:1; }
   .wait-no small{ font-size:13px; font-family:'Noto Sans KR',sans-serif; font-weight:800; }
   .wait-who b{ font-size:15.5px; }
@@ -415,7 +422,7 @@
         <button class="btn-mini" id="resetWaitBtn">대기 명단 초기화</button>
       </div>
       <div id="waitList"><div class="hint">불러오는 중…</div></div>
-      <p class="hint">손님이 주문 화면(또는 입구 QR)에서 웨이팅을 등록하면 여기에 순서대로 떠요. "호출"을 누르면 손님 폰에 <b>입장 가능</b> 알림이 진동과 함께 가고, 고른 테이블 번호도 같이 보여요. 손님이 오면 "입장"을 눌러주세요.</p>
+      <p class="hint">손님이 주문 화면에서 웨이팅을 등록하면 여기에 순서대로 떠요. "호출"을 누르면 손님 폰에 <b>입장 가능</b> 알림이 가요. 손님이 "지금 갈게요"를 누르면 <b style="color:var(--success)">✓ 오는 중</b>으로 바뀌고, 5분 동안 응답이 없으면 <b style="color:var(--pending)">응답 없음</b>이 떠요. 손님이 오면 "입장"을 눌러주세요.</p>
     </div>
 
     <div class="panel">
@@ -1025,12 +1032,17 @@
   // ---------- 웨이팅 ----------
   var waitlist = [];
   var firstWaitSnapshot = true;
+  var NO_RESPONSE_MIN = 5; // 호출 후 5분 동안 응답 없으면 표시
 
   function initWaitlist(){
     db.collection('waitlist').onSnapshot(function(snap){
       if (!firstWaitSnapshot){
         snap.docChanges().forEach(function(ch){
           if (ch.type === 'added' && ch.doc.data().status === 'waiting'){ beep(); toast('새 웨이팅 #' + ch.doc.data().waitNumber); }
+          if (ch.type === 'modified'){
+            var d = ch.doc.data(), prev = waitlist.filter(function(x){ return x.id === ch.doc.id; })[0];
+            if (d.status === 'called' && d.ackAt && prev && !prev.ackAt){ beep(); toast('웨이팅 ' + d.waitNumber + '번 손님이 오고 있어요'); }
+          }
         });
       }
       firstWaitSnapshot = false;
@@ -1094,6 +1106,16 @@
     var suggestion = free.slice();
     wrap.innerHTML = active.map(function(w){
       var called = w.status === 'called';
+      var calledMin = called && w.calledAt && w.calledAt.toDate ? (Date.now() - w.calledAt.toDate().getTime()) / 60000 : 0;
+      var coming = called && !!w.ackAt;
+      var late = called && !coming && calledMin >= NO_RESPONSE_MIN;
+      var resp = '';
+      if (called){
+        if (coming) resp = '<span class="resp r-coming">✓ 오는 중 · ' + minsAgo(w.ackAt) + ' 응답</span>';
+        else if (late) resp = '<span class="resp r-late">응답 없음 ' + Math.floor(calledMin) + '분 · ' + (w.seenAt ? '알림은 봤어요' : '알림도 안 봤어요') + '</span>';
+        else if (w.seenAt) resp = '<span class="resp r-seen">알림 봄 · 응답 기다리는 중</span>';
+        else resp = '<span class="resp r-none">알림 보냄 · 아직 안 봄</span>';
+      }
       var pick = called ? Number(w.tableNo) || '' : (suggestion.length ? suggestion.shift() : '');
       var opts = '<option value="">테이블 미정</option>';
       for (var i = 1; i <= tableTotal(); i++){
@@ -1101,12 +1123,12 @@
         opts += '<option value="' + i + '"' + (pick === i ? ' selected' : '') + '>' + label + '</option>';
       }
       var btns = called
-        ? '<button class="w-seat" data-act="seat" data-id="' + w.id + '">입장</button><button class="w-recall" data-act="call" data-id="' + w.id + '">다시 호출</button><button class="w-cancel" data-act="cancel" data-id="' + w.id + '">취소</button>'
+        ? '<button class="w-seat" data-act="seat" data-id="' + w.id + '">입장</button><button class="w-recall" data-act="call" data-id="' + w.id + '">다시 호출</button><button class="w-cancel" data-act="cancel" data-id="' + w.id + '">' + (late ? '노쇼' : '취소') + '</button>'
         : '<button class="w-call" data-act="call" data-id="' + w.id + '">호출</button><button class="w-cancel" data-act="cancel" data-id="' + w.id + '">취소</button>';
-      return '<div class="wait-row' + (called ? ' called' : '') + '">' +
+      return '<div class="wait-row' + (coming ? ' coming' : late ? ' late' : called ? ' called' : '') + '">' +
         '<div class="wait-no">' + w.waitNumber + '<small>번</small></div>' +
         '<div class="wait-who"><b>' + escapeHtml(w.name || '') + '</b> · ' + (w.people || '?') + '명' +
-          '<div class="tcard-sub">' + (called ? '<span style="color:var(--red);font-weight:800">호출 ' + minsAgo(w.calledAt) + '</span>' : '등록 ' + minsAgo(w.createdAt)) + '</div></div>' +
+          '<div class="tcard-sub">' + (called ? '<span style="color:var(--red);font-weight:800">호출 ' + minsAgo(w.calledAt) + '</span>' : '등록 ' + minsAgo(w.createdAt)) + '</div>' + resp + '</div>' +
         '<select data-id="' + w.id + '">' + opts + '</select>' +
         '<div class="wait-btns">' + btns + '</div></div>';
     }).join('');
@@ -1120,7 +1142,8 @@
         var ref = db.collection('waitlist').doc(w.id);
         var fail = function(err){ toast('저장 실패: ' + (err.code || err.message)); };
         if (b.dataset.act === 'call'){
-          ref.update({ status: 'called', tableNo: tableNo, calledAt: firebase.firestore.FieldValue.serverTimestamp() })
+          ref.update({ status: 'called', tableNo: tableNo, calledAt: firebase.firestore.FieldValue.serverTimestamp(),
+            seenAt: firebase.firestore.FieldValue.delete(), ackAt: firebase.firestore.FieldValue.delete() })
             .then(function(){ toast(w.waitNumber + '번 손님을 호출했어요'); }).catch(fail);
         } else if (b.dataset.act === 'seat'){
           var batch = db.batch();
