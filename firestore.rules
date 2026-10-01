@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// 주점 주문 시스템 보안 규칙 v6 (주문 + 테이블·예약 + 웨이팅)
+// 주점 주문 시스템 보안 규칙 v7 (주문 + 테이블·예약 + 웨이팅 + 전화번호)
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -47,6 +47,17 @@ service cloud.firestore {
             && request.resource.data.get('seenAt', request.time) is timestamp
             && request.resource.data.get('ackAt', request.time) is timestamp);
       allow delete: if request.auth != null;
+    }
+
+    // 웨이팅 전화번호: 손님은 등록만, 읽기/삭제는 주방 화면만
+    match /waitPhones/{waitId} {
+      allow read, update, delete: if request.auth != null;
+      allow create: if request.auth != null
+        || (request.resource.data.keys().hasOnly(['phone', 'createdAt'])
+            && request.resource.data.phone is string
+            && request.resource.data.phone.matches('^01[0-9]{8,9}$')
+            && request.resource.data.createdAt == request.time
+            && existsAfter(/databases/$(database)/documents/waitlist/$(waitId)));
     }
 
     // 웨이팅 번호 카운터: 손님은 "1 올리기"만 가능

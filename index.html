@@ -407,6 +407,8 @@
       <div class="wait-queue-info" id="waitQueueInfo">현재 대기 <b>0</b>팀</div>
       <label class="field-label" for="waitNameInput">이름 <span class="req">*</span> <span class="opt">· 부를 때 쓸 이름</span></label>
       <input class="field-input" id="waitNameInput" placeholder="예: 박시후" autocomplete="off" maxlength="20">
+      <label class="field-label" for="waitPhoneInput">전화번호 <span class="req">*</span> <span class="opt">· 입장 차례에 연락드려요</span></label>
+      <input class="field-input" id="waitPhoneInput" type="tel" inputmode="numeric" placeholder="010-1234-5678" autocomplete="tel" maxlength="13">
       <div class="field-label">인원 <span class="req">*</span></div>
       <div class="people-row">
         <button type="button" id="peopleMinus">−</button>
@@ -414,7 +416,7 @@
         <button type="button" id="peoplePlus">+</button>
       </div>
       <button class="btn-submit" id="waitSubmitBtn" disabled>웨이팅 등록하기</button>
-      <div class="submit-hint">등록하면 대기번호가 나오고, 입장할 차례가 되면 이 화면에 알려드려요.<br>화면을 닫아도 다시 들어오면 그대로 보여요.</div>
+      <div class="submit-hint">등록하면 대기번호가 나오고, 입장할 차례가 되면 이 화면에 알려드려요.<br>전화번호는 스태프만 볼 수 있고 입장·취소하면 바로 지워져요.</div>
     </div>
 
     <div id="waitStatusView" hidden>
@@ -825,8 +827,17 @@
   }
   document.getElementById('peopleMinus').addEventListener('click', function(){ setPeople(waitPeople - 1); });
   document.getElementById('peoplePlus').addEventListener('click', function(){ setPeople(waitPeople + 1); });
-  document.getElementById('waitNameInput').addEventListener('input', function(){
-    document.getElementById('waitSubmitBtn').disabled = !this.value.trim();
+  function phoneDigits(){ return document.getElementById('waitPhoneInput').value.replace(/\D/g, ''); }
+  function phoneOk(){ return /^01[0-9]{8,9}$/.test(phoneDigits()); }
+  function refreshWaitSubmit(){
+    document.getElementById('waitSubmitBtn').disabled = !(document.getElementById('waitNameInput').value.trim() && phoneOk());
+  }
+  document.getElementById('waitNameInput').addEventListener('input', refreshWaitSubmit);
+  document.getElementById('waitPhoneInput').addEventListener('input', function(){
+    // 010-1234-5678 형태로 자동 하이픈
+    var d = phoneDigits().slice(0, 11);
+    this.value = d.length < 4 ? d : d.length < 8 ? d.slice(0,3) + '-' + d.slice(3) : d.slice(0,3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4);
+    refreshWaitSubmit();
   });
 
   function startWaitListeners(){
@@ -997,25 +1008,35 @@
   document.getElementById('waitSubmitBtn').addEventListener('click', function(){
     var name = document.getElementById('waitNameInput').value.trim();
     if (!name || waitSubmitting || !db) return;
+    if (!phoneOk()){ toast('전화번호를 정확히 입력해주세요 (예: 010-1234-5678)'); return; }
+    var phone = phoneDigits();
     // 소리 알림을 위해 사용자가 누른 순간 오디오를 미리 깨워둬요
     try{ waitAudio = waitAudio || new (window.AudioContext || window.webkitAudioContext)(); waitAudio.resume(); }catch(e){}
     waitSubmitting = true;
     var btn = this; btn.disabled = true; btn.textContent = '등록 중…';
     issueWaitNumber().then(function(num){
-      return db.collection('waitlist').add({
+      // 웨이팅(공개)과 전화번호(주방 전용)를 따로 저장해요
+      var ref = db.collection('waitlist').doc();
+      var batch = db.batch();
+      batch.set(ref, {
         waitNumber: num, name: name.slice(0, 20), people: waitPeople, status: 'waiting',
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(function(ref){ return { id: ref.id, waitNumber: num }; });
+      });
+      batch.set(db.collection('waitPhones').doc(ref.id), {
+        phone: phone, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      return batch.commit().then(function(){ return { id: ref.id, waitNumber: num }; });
     }).then(function(w){
       myWait = w; lastWaitStatus = 'waiting';
       try{ localStorage.setItem(WAIT_KEY, JSON.stringify(w)); }catch(e){}
       watchMyWait();
       document.getElementById('waitNameInput').value = '';
+      document.getElementById('waitPhoneInput').value = '';
     }).catch(function(err){
       console.error(err); toast(errorMessage(err).replace('주문', '웨이팅'));
     }).finally(function(){
       waitSubmitting = false; btn.textContent = '웨이팅 등록하기';
-      btn.disabled = !document.getElementById('waitNameInput').value.trim();
+      refreshWaitSubmit();
     });
   });
 
