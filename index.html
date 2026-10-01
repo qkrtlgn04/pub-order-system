@@ -140,7 +140,13 @@
 
   main{ padding: 4px 20px 140px; max-width:640px; margin:0 auto; }
 
-  .category-block{ margin-top:26px; }
+  .group-tabs{ display:flex; gap:8px; margin-top:16px; position:sticky; top:0; z-index:5; background:#fff; padding:8px 0; }
+  .group-tab{
+    flex:1; padding:12px 8px; border-radius:999px; border:1.5px solid var(--red); background:#fff; color:var(--red);
+    font-size:15px; font-weight:800; cursor:pointer; font-family:inherit;
+  }
+  .group-tab.active{ background:var(--red); color:#fff; }
+  .category-block{ margin-top:22px; }
   .category-title{
     display:flex; align-items:center; gap:10px;
     font-family:var(--serif); font-size:17px; font-weight:700; color:var(--ink);
@@ -296,6 +302,16 @@
   .history-item-head{ display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:700; }
   .history-item-sub{ font-size:12px; color:var(--text-muted); margin-top:4px; }
 
+  .item-notice{ margin-top:6px; font-size:12.5px; font-weight:700; color:var(--red-deep); background:var(--red-soft); border-radius:8px; padding:6px 9px; line-height:1.4; }
+  .item-notice[hidden]{ display:none; }
+  .order-line-notice{ font-size:12px; font-weight:700; color:var(--red-deep); margin:-2px 0 8px; }
+  #warnModal{ position:fixed; inset:0; z-index:95; background:rgba(20,16,14,0.6); display:flex; align-items:center; justify-content:center; padding:24px; }
+  #warnModal[hidden]{ display:none; }
+  .warn-box{ background:#fff; border-radius:var(--radius); padding:24px 20px 18px; max-width:340px; width:100%; text-align:center; border-top:5px solid var(--red); }
+  .warn-box .wm-title{ font-size:13px; font-weight:800; color:var(--red); margin-bottom:8px; }
+  .warn-box .wm-text{ font-size:17px; font-weight:800; line-height:1.5; margin-bottom:18px; word-break:keep-all; }
+  .warn-box button{ width:100%; padding:13px; border:none; border-radius:999px; background:var(--red); color:#fff; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit; }
+
   .toast{
     position:fixed; left:50%; bottom:30px; transform:translateX(-50%);
     background:var(--ink); color:#fff;
@@ -438,6 +454,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="warnModal" hidden><div class="warn-box"><div class="wm-title">⚠️ 확인해 주세요</div><div class="wm-text" id="warnText"></div><button type="button" id="warnOk">확인했어요</button></div></div>
 <div id="imgLightbox" hidden><img id="imgLightboxImg" src="" alt="메뉴 사진 크게 보기"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
@@ -538,6 +555,7 @@
   }
 
   // ---------- 메뉴 렌더링 ----------
+  var activeGroup = '단품';
   function renderMenu(){
     var wrap = document.getElementById('menuList');
     var ids = Object.keys(menuItems);
@@ -550,7 +568,8 @@
 
     var categories = [];
     var byCat = {};
-    ids.sort(function(a,b){
+    var groupOf = function(it){ return it.group === '세트' ? '세트' : '단품'; };
+    ids.filter(function(id){ return groupOf(menuItems[id]) === activeGroup; }).sort(function(a,b){
       var oa = menuItems[a].order, ob = menuItems[b].order;
       if (oa != null && ob != null) return oa - ob;
       return (menuItems[a].name||'').localeCompare(menuItems[b].name||'', 'ko');
@@ -561,16 +580,22 @@
       byCat[cat].push(id);
     });
 
-    var html = '';
+    var html = '<div class="group-tabs">' +
+      '<button class="group-tab ' + (activeGroup === '단품' ? 'active' : '') + '" data-group="단품">단품메뉴</button>' +
+      '<button class="group-tab ' + (activeGroup === '세트' ? 'active' : '') + '" data-group="세트">세트메뉴</button></div>';
+    if (categories.length === 0){
+      html += '<div class="empty-state">' + (activeGroup === '세트' ? '세트메뉴' : '단품메뉴') + '가 아직 없어요.</div>';
+    }
     categories.forEach(function(cat){
       html += '<div class="category-block"><div class="category-title">' + escapeHtml(cat) + '</div>';
       byCat[cat].forEach(function(id){
         var it = menuItems[id];
         var qty = cart[id] || 0;
         html += '<div class="item-card ' + (it.soldOut ? 'soldout' : '') + '" data-id="' + id + '">';
-        if (it.image) html += '<img class="item-thumb" src="' + it.image + '" alt="' + escapeHtml(it.name||'') + '" loading="lazy">';
+        if (it.thumb || it.image) html += '<img class="item-thumb" data-id="' + id + '" src="' + (it.thumb || it.image) + '" alt="' + escapeHtml(it.name||'') + '" loading="lazy">';
         html += '<div class="item-info"><div class="item-name">' + escapeHtml(it.name||'') + '</div>';
         if (it.desc) html += '<div class="item-desc">' + escapeHtml(it.desc) + '</div>';
+        if (it.cartNotice && !it.soldOut) html += '<div class="item-notice" ' + (qty > 0 ? '' : 'hidden') + '>' + escapeHtml(it.cartNotice) + '</div>';
         html += '<div class="item-price">' + won(it.price) + '</div>';
         if (it.soldOut) html += '<div class="soldout-badge">품절</div>';
         html += '</div>';
@@ -586,8 +611,11 @@
     });
     wrap.innerHTML = html;
 
+    wrap.querySelectorAll('.group-tab').forEach(function(btn){
+      btn.addEventListener('click', function(){ activeGroup = btn.dataset.group; renderMenu(); });
+    });
     wrap.querySelectorAll('.item-thumb').forEach(function(img){
-      img.addEventListener('click', function(){ openLightbox(img.src); });
+      img.addEventListener('click', function(){ openMenuPhoto(img.dataset.id, img.src); });
     });
     wrap.querySelectorAll('.qty-plus').forEach(function(btn){
       btn.addEventListener('click', function(){ changeQty(btn.dataset.id, 1); });
@@ -597,13 +625,23 @@
     });
   }
 
+  function showWarning(text){
+    document.getElementById('warnText').textContent = text;
+    document.getElementById('warnModal').hidden = false;
+  }
+  document.getElementById('warnOk').addEventListener('click', function(){ document.getElementById('warnModal').hidden = true; });
+
   function changeQty(id, delta){
     var cur = cart[id] || 0;
     var next = Math.max(0, Math.min(20, cur + delta));
+    var it0 = menuItems[id];
+    if (cur === 0 && next > 0 && it0 && it0.addWarning) showWarning(it0.addWarning);
     if (next === 0) delete cart[id]; else cart[id] = next;
     saveCart();
     var card = document.querySelector('.item-card[data-id="' + id + '"] .qty');
     if (card) card.textContent = next;
+    var ntc = document.querySelector('.item-card[data-id="' + id + '"] .item-notice');
+    if (ntc) ntc.hidden = next === 0;
     updateCartBar();
   }
 
@@ -647,7 +685,9 @@
     if (s.count === 0) return;
     var lw = document.getElementById('orderLines');
     lw.innerHTML = s.lines.map(function(l){
-      return '<div class="order-line"><span class="name">' + escapeHtml(l.name) + ' <span class="sub">x' + l.qty + '</span></span><span>' + won(l.subtotal) + '</span></div>';
+      var m = menuItems[l.id];
+      return '<div class="order-line"><span class="name">' + escapeHtml(l.name) + ' <span class="sub">x' + l.qty + '</span></span><span>' + won(l.subtotal) + '</span></div>' +
+        (m && m.cartNotice ? '<div class="order-line-notice">⚠️ ' + escapeHtml(m.cartNotice) + '</div>' : '');
     }).join('');
     document.getElementById('orderTotal').textContent = won(s.total);
     document.getElementById('payBank').textContent = settings.bankName || '(주방 화면에서 계좌 정보를 등록해주세요)';
@@ -664,6 +704,18 @@
   // ---------- 사진 크게 보기 ----------
   var imgLightbox = document.getElementById('imgLightbox');
   var imgLightboxImg = document.getElementById('imgLightboxImg');
+  // 큰 사진은 눌렀을 때만 따로 불러와요 (메뉴 목록은 작은 썸네일만 받아서 빠르게)
+  var fullImageCache = {};
+  function openMenuPhoto(id, thumbSrc){
+    if (fullImageCache[id]){ openLightbox(fullImageCache[id]); return; }
+    openLightbox(thumbSrc);
+    if (!db || (menuItems[id] && menuItems[id].image)) return; // 옛 방식 사진은 이미 큰 사진
+    db.collection('settings').doc('img_' + id).get().then(function(snap){
+      if (!snap.exists || !snap.data().image) return;
+      fullImageCache[id] = snap.data().image;
+      if (!imgLightbox.hidden) imgLightboxImg.src = fullImageCache[id];
+    }).catch(function(){});
+  }
   function openLightbox(src){ imgLightboxImg.src = src; imgLightbox.hidden = false; }
   imgLightbox.addEventListener('click', function(){ imgLightbox.hidden = true; imgLightboxImg.src = ''; });
 
@@ -814,8 +866,8 @@
   try{ myWait = JSON.parse(localStorage.getItem(WAIT_KEY) || 'null'); }catch(e){ myWait = null; }
 
   var waitSheetBackdrop = document.getElementById('waitSheetBackdrop');
-  function openWaitSheet(){ renderWaitSheet(); waitSheetBackdrop.hidden = false; }
-  function closeWaitSheet(){ waitSheetBackdrop.hidden = true; }
+  function openWaitSheet(){ renderWaitSheet(); waitSheetBackdrop.hidden = false; syncWaitQueue(); }
+  function closeWaitSheet(){ waitSheetBackdrop.hidden = true; syncWaitQueue(); }
   document.getElementById('waitBtn').addEventListener('click', openWaitSheet);
   document.getElementById('myWaitCard').addEventListener('click', openWaitSheet);
   document.getElementById('waitSheetClose').addEventListener('click', closeWaitSheet);
@@ -840,20 +892,36 @@
     refreshWaitSubmit();
   });
 
+  // 대기 목록 전체는 "웨이팅 창을 열었을 때"와 "내가 대기 중일 때"만 실시간으로 받아요.
+  // (주문만 하는 손님 폰이 웨이팅 변동마다 읽기를 쓰지 않도록)
+  var waitQueueUnsub = null;
+  function syncWaitQueue(){
+    var sheetOpen = !waitSheetBackdrop.hidden;
+    var waitingMe = myWait && (!myWaitData || myWaitData.status === 'waiting');
+    var need = !!db && (sheetOpen || waitingMe);
+    if (need && !waitQueueUnsub){
+      waitQueueUnsub = db.collection('waitlist').where('status', '==', 'waiting').onSnapshot(function(snap){
+        waitingQueue = [];
+        snap.forEach(function(doc){ waitingQueue.push(Object.assign({ id: doc.id }, doc.data())); });
+        renderWaitCard(); renderWaitSheet();
+      }, function(err){ console.error(err); });
+    } else if (!need && waitQueueUnsub){
+      waitQueueUnsub(); waitQueueUnsub = null; waitingQueue = [];
+    }
+  }
+
   function startWaitListeners(){
-    db.collection('waitlist').where('status', '==', 'waiting').onSnapshot(function(snap){
-      waitingQueue = [];
-      snap.forEach(function(doc){ waitingQueue.push(Object.assign({ id: doc.id }, doc.data())); });
-      renderWaitCard(); renderWaitSheet();
-    }, function(err){ console.error(err); });
     if (myWait && myWait.id) watchMyWait();
+    syncWaitQueue();
   }
 
   function watchMyWait(){
     if (myWaitUnsub) myWaitUnsub();
+    syncWaitQueue();
     myWaitUnsub = db.collection('waitlist').doc(myWait.id).onSnapshot(function(snap){
       if (!snap.exists){ clearMyWait(); return; }
       myWaitData = snap.data();
+      syncWaitQueue();
       if (myWaitData.status === 'called' && lastWaitStatus !== null && lastWaitStatus !== 'called') alertCalled();
       if ((myWaitData.status === 'called' || myWaitData.status === 'seated') && myWaitData.tableNo){
         selectedTable = Number(myWaitData.tableNo); tableLocked = true;
@@ -880,6 +948,7 @@
   function clearMyWait(){
     if (myWaitUnsub){ myWaitUnsub(); myWaitUnsub = null; }
     myWait = null; myWaitData = null; lastWaitStatus = null;
+    syncWaitQueue();
     try{ localStorage.removeItem(WAIT_KEY); }catch(e){}
     renderWaitCard(); renderWaitSheet();
   }
