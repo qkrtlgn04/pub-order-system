@@ -163,9 +163,9 @@
   .panel h3::before{ content:""; width:8px; height:8px; background:var(--red); transform:rotate(45deg); }
 
   /* ---------- 메뉴 관리 ---------- */
-  .menu-row{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.7fr 0.8fr 2fr auto auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .menu-row{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.7fr 0.7fr 0.8fr 2fr auto auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
   .menu-row:last-child{ border-bottom:none; }
-  .menu-head{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.7fr 0.8fr 2fr auto auto; gap:8px; font-size:12px; color:var(--text-muted); font-weight:700; padding:0 0 4px; }
+  .menu-head{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.7fr 0.7fr 0.8fr 2fr auto auto; gap:8px; font-size:12px; color:var(--text-muted); font-weight:700; padding:0 0 4px; }
   .menu-row .f-warn, .menu-row .f-notice{ grid-column: 1 / -1; }
   .add-form #newItemWarn, .add-form #newItemNotice{ grid-column: 1 / -1; }
   .menu-row select, .add-form select{ width:100%; padding:9px 8px; border:1px solid var(--border); border-radius:8px; font-size:13px; font-family:inherit; background:#faf7f2; }
@@ -179,7 +179,7 @@
   .toggle-soldout.on{ background:var(--ink); color:#fff; }
   .btn-add{ background:var(--red); color:#fff; }
   .btn-delete{ background:#fff; color:var(--danger); border:1px solid var(--border) !important; }
-  .add-form{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.7fr 0.8fr 2fr auto; gap:8px; margin-top:16px; padding-top:16px; border-top:2px solid var(--border); }
+  .add-form{ display:grid; grid-template-columns: 1.2fr 0.7fr 0.7fr 0.7fr 0.8fr 2fr auto; gap:8px; margin-top:16px; padding-top:16px; border-top:2px solid var(--border); }
   @media (max-width:760px){
     .menu-head{ display:none; }
     .menu-row{ grid-template-columns: 1fr 1fr; }
@@ -449,11 +449,12 @@
   <section id="tab-menu" class="kb-tab">
     <div class="panel">
       <h3>메뉴 목록</h3>
-      <div class="menu-head"><span>메뉴 이름</span><span>가격</span><span>구분</span><span>분류</span><span>메뉴 설명 (손님 화면에 표시)</span><span></span><span></span></div>
+      <div class="menu-head"><span>메뉴 이름</span><span>판매가</span><span>정가(취소선)</span><span>구분</span><span>분류</span><span>메뉴 설명 (손님 화면에 표시)</span><span></span><span></span></div>
       <div id="menuManageList"><div class="hint">불러오는 중…</div></div>
       <div class="add-form">
         <input id="newItemName" placeholder="메뉴 이름 (예: 모츠나베)">
-        <input id="newItemPrice" placeholder="가격 (숫자만)" inputmode="numeric">
+        <input id="newItemPrice" placeholder="판매가 (숫자만)" inputmode="numeric">
+        <input id="newItemOrig" placeholder="정가 (세트 할인용, 선택)" inputmode="numeric">
         <select id="newItemGroup"><option value="단품">단품메뉴</option><option value="세트">세트메뉴</option></select>
         <input id="newItemCategory" placeholder="분류 (예: 안주)">
         <input id="newItemDesc" placeholder="메뉴 설명 (예: 곱창 전골, 2~3인분)" maxlength="80">
@@ -461,7 +462,7 @@
         <input id="newItemNotice" maxlength="80" placeholder="⚠️ 담겨 있는 동안 보이는 안내 문구 (선택)">
         <button class="btn-add" id="addItemBtn">추가</button>
       </div>
-      <div class="hint">입력하면 자동 저장돼요. 가격은 숫자만 (예: 5000), 구분은 단품메뉴/세트메뉴 중에서 고르고, 분류(예: 주류·안주)는 그 안의 소제목이에요. 분류를 비워두면 "기타"로 등록돼요. 메뉴 사진은 "설정" 탭에서 올릴 수 있어요.</div>
+      <div class="hint">입력하면 자동 저장돼요. 가격은 숫자만 (예: 5000), 정가를 판매가보다 높게 적으면 손님 화면에 정가가 취소선으로 같이 보이고 "○○원 할인" 표시가 붙어요 (세트 메뉴에 쓰면 좋아요), 구분은 단품메뉴/세트메뉴 중에서 고르고, 분류(예: 주류·안주)는 그 안의 소제목이에요. 분류를 비워두면 "기타"로 등록돼요. 메뉴 사진은 "설정" 탭에서 올릴 수 있어요.</div>
     </div>
   </section>
 
@@ -1238,10 +1239,11 @@
       var category = document.getElementById('newItemCategory').value.trim() || '기타';
       var desc = document.getElementById('newItemDesc').value.trim();
       if (!name){ toast('메뉴 이름을 입력해주세요'); return; }
-      db.collection('menu').add({ name: name, price: price, category: category, group: document.getElementById('newItemGroup').value, desc: desc, addWarning: document.getElementById('newItemWarn').value.trim(), cartNotice: document.getElementById('newItemNotice').value.trim(), soldOut:false, order: Date.now() }).then(function(){
+      db.collection('menu').add({ name: name, price: price, category: category, group: document.getElementById('newItemGroup').value, origPrice: Number(document.getElementById('newItemOrig').value.trim()) || 0, desc: desc, addWarning: document.getElementById('newItemWarn').value.trim(), cartNotice: document.getElementById('newItemNotice').value.trim(), soldOut:false, order: Date.now() }).then(function(){
         document.getElementById('newItemName').value = '';
         document.getElementById('newItemDesc').value = '';
         document.getElementById('newItemPrice').value = '';
+        document.getElementById('newItemOrig').value = '';
         document.getElementById('newItemCategory').value = '';
         document.getElementById('newItemWarn').value = '';
         document.getElementById('newItemNotice').value = '';
@@ -1267,6 +1269,7 @@
       return '<div class="menu-row" data-id="' + it.id + '">' +
         '<input class="f-name" value="' + escapeHtml(it.name||'') + '">' +
         '<input class="f-price" inputmode="numeric" value="' + (it.price||0) + '">' +
+        '<input class="f-orig" inputmode="numeric" placeholder="정가(선택)" value="' + (it.origPrice || '') + '">' +
         '<select class="f-group"><option value="단품"' + (it.group === '세트' ? '' : ' selected') + '>단품메뉴</option><option value="세트"' + (it.group === '세트' ? ' selected' : '') + '>세트메뉴</option></select>' +
         '<input class="f-category" value="' + escapeHtml(it.category||'') + '">' +
         '<input class="f-desc" maxlength="80" placeholder="메뉴 설명 (선택)" value="' + escapeHtml(it.desc||'') + '">' +
@@ -1284,6 +1287,7 @@
         if (!savers[field]) savers[field] = debounce(function(f, v){
           var patch = {};
           if (f === 'price') v = Number(v) || 0;
+          if (f === 'origPrice') v = Number(v) || 0;
           patch[f] = v;
           db.collection('menu').doc(id).update(patch).catch(function(err){ toast('저장 실패: ' + (err.code || err.message)); });
         }, 500);
@@ -1291,6 +1295,7 @@
       }
       row.querySelector('.f-name').addEventListener('input', function(e){ saveField('name', e.target.value.trim()); });
       row.querySelector('.f-price').addEventListener('input', function(e){ saveField('price', e.target.value.trim()); });
+      row.querySelector('.f-orig').addEventListener('input', function(e){ saveField('origPrice', e.target.value.trim()); });
       row.querySelector('.f-group').addEventListener('change', function(e){ saveField('group', e.target.value); });
       row.querySelector('.f-category').addEventListener('input', function(e){ saveField('category', e.target.value.trim() || '기타'); });
       row.querySelector('.f-warn').addEventListener('input', function(e){ saveField('addWarning', e.target.value.trim()); });
